@@ -19,6 +19,7 @@ classifiers = [
     "Intended Audience :: Science/Research",
     "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
     "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "Operating System :: MacOS",
     "Operating System :: Unix",
     "Topic :: Office/Business :: Financial :: Investment",
@@ -82,7 +83,6 @@ hyperopt = [
 freqai = [
   "scikit-learn",
   "joblib",
-  "catboost; platform_machine != 'arm'",
   "lightgbm",
   "xgboost",
   "tensorboard",
