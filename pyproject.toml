@@ -26,7 +26,6 @@ classifiers = [
 ]
 
 dependencies = [
-  # from requirements.txt
   "ccxt>=4.5.4",
   "SQLAlchemy>=2.0.6",
   "python-telegram-bot>=20.1",
@@ -137,11 +136,11 @@ Documentation = "https://freqtrade.io"
 freqtrade = "freqtrade.main:main"
 
 [tool.hatch.build.targets.wheel]
-packages = ["freqtrade"]
+packages = ["src/freqtrade"]
 
 [tool.hatch.build.targets.sdist]
 include = [
-    "/freqtrade",
+    "/src/freqtrade",
     "/README.md",
     "/LICENSE",
 ]
@@ -153,10 +152,15 @@ exclude = [
     "*~",
 ]
 
-[tool.pytest]
+[tool.pytest.ini_options]
+minversion = "9.0"
+pythonpath = ["src"]
+testpaths = ["tests"]
 log_format = "%(asctime)s %(levelname)s %(message)s"
 log_date_format = "%Y-%m-%d %H:%M:%S"
-addopts = ["--dist", "loadscope"]
+addopts = ["-ra", "-q", "--strict-markers", "--import-mode=importlib", "--dist", "loadscope"]
+xfail_strict = true
+filterwarnings = ["error"]
 
 asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "function"
@@ -186,14 +190,15 @@ module = [
 disable_error_code = "attr-defined"
 
 [tool.pyright]
-include = ["freqtrade", "ft_client"]
+include = ["src/freqtrade", "ft_client"]
+pythonpath = ["src"]
 exclude = [
   "**/__pycache__",
   "build_helpers/*.py",
   "ft_client/build/*",
   "build/*",
 ]
-ignore = ["freqtrade/vendor/**"]
+ignore = ["src/freqtrade/vendor/**"]
 pythonPlatform = "All"
 pythonVersion = "3.13"
 
@@ -242,7 +247,10 @@ extend-select = [
   "A",      # flake8-builtins
   "TID",    # flake8-tidy-imports
   # "EXE",  # flake8-executable
-  # "C4",     # flake8-comprehensions
+  "C4",     # flake8-comprehensions
+  "SIM",    # flake8-simplify
+  "PERF",   # perflint
+  "TC",     # flake8-type-checking
   "YTT",    # flake8-2020
   "S",      # flake8-bandit
   # "DTZ",  # flake8-datetimez
@@ -274,7 +282,7 @@ extend-ignore = [
 max-complexity = 12
 
 [tool.ruff.lint.per-file-ignores]
-"freqtrade/freqai/**/*.py" = [
+"src/freqtrade/freqai/**/*.py" = [
   "S311",  # Standard pseudo-random generators are not suitable for cryptographic purposes
 ]
 "tests/**.py" = [
@@ -286,7 +294,7 @@ max-complexity = 12
   "S110",  # `try`-`except`-`pass` detected, consider logging the exception
   ]
 
-"freqtrade/templates/**.py" = [
+"src/freqtrade/templates/**.py" = [
   "RUF100",  # Allow unused noqa
 ]
 
@@ -300,7 +308,7 @@ extend-immutable-calls = ["fastapi.Depends", "fastapi.Query"]
 
 [tool.ruff.lint.isort]
 lines-after-imports = 2
-known-first-party = ["freqtrade_client"]
+known-first-party = ["freqtrade", "freqtrade_client"]
 
 [tool.flake8]
 # Default from https://flake8.pycqa.org/en/latest/user/options.html#cmdoption-flake8-ignore
@@ -319,4 +327,4 @@ exclude = [
 
 [tool.codespell]
 ignore-words-list = "coo,fo,strat,zar,selectin"
-skip="*.svg,./user_data,freqtrade/rpc/api_server/ui/installed,freqtrade/exchange/*.json"
+skip="*.svg,./user_data,src/freqtrade/rpc/api_server/ui/installed,src/freqtrade/exchange/*.json"
