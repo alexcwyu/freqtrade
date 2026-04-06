@@ -106,6 +106,7 @@ from freqtrade.misc import (
     file_dump_json,
     file_load_json,
     safe_value_fallback,
+    safe_value_nested,
 )
 from freqtrade.util import FtTTLCache, PeriodicCache, dt_from_ts, dt_now
 from freqtrade.util.datetime_helpers import dt_humanize_delta, dt_ts, format_ms_time
@@ -207,7 +208,7 @@ class Exchange:
             self._config.get("trading_mode", self._supported_trading_mode_margin_pairs[0][0])
         )
         self.margin_mode: MarginMode = MarginMode(
-            MarginMode(self._config.get("margin_mode"))
+            self._config["margin_mode"]
             if self._config.get("margin_mode")
             else self._supported_trading_mode_margin_pairs[0][1]
         )
@@ -313,10 +314,19 @@ class Exchange:
         if self._exchange_ws:
             self._exchange_ws.cleanup()
         logger.debug("Exchange object destroyed, closing async loop")
+        try:
+            generic_loop = asyncio.get_running_loop()
+        except RuntimeError:
+            generic_loop = None
+        loop_running = (getattr(self, "loop", None) and self.loop.is_running()) or (
+            generic_loop is not None and generic_loop.is_running()
+        )
+
         if (
             getattr(self, "_api_async", None)
             and inspect.iscoroutinefunction(self._api_async.close)
             and self._api_async.session
+            and not loop_running
         ):
             logger.debug("Closing async ccxt session.")
             self.loop.run_until_complete(self._api_async.close())
@@ -324,6 +334,7 @@ class Exchange:
             self._ws_async
             and inspect.iscoroutinefunction(self._ws_async.close)
             and self._ws_async.session
+            and not loop_running
         ):
             logger.debug("Closing ws ccxt session.")
             self.loop.run_until_complete(self._ws_async.close())
@@ -814,7 +825,8 @@ class Exchange:
                 and order_types["stoploss_price_type"] not in price_mapping
             ):
                 raise ConfigurationError(
-                    f"On exchange stoploss price type is not supported for {self.name}."
+                    f"On exchange stoploss price type '{order_types['stoploss_price_type']}' "
+                    f"is not supported for {self.name}."
                 )
 
     def validate_pricing(self, pricing: dict) -> None:
@@ -982,12 +994,12 @@ class Exchange:
              swap.linear.fetchOHLCV.limit
         """
         feat = (
-            self._api_async.features.get("spot", {})
+            safe_value_nested(self._api_async.features, "spot", {})
             if market_type == "spot"
-            else self._api_async.features.get("swap", {}).get("linear", {})
+            else safe_value_nested(self._api_async.features, "swap.linear", {})
         )
 
-        return feat.get(endpoint, {}).get(attribute, default)
+        return safe_value_nested(feat, f"{endpoint}.{attribute}", default)
 
     def get_precision_amount(self, pair: str) -> float | None:
         """
@@ -1293,6 +1305,7 @@ class Exchange:
         Check dry-run limit order fill and update fee (if it filled).
         """
         if order["status"] != "closed" and order.get("ft_order_type") == "stoploss":
+            # Stoploss branch
             pair = order["symbol"]
             if not orderbook and self.exchange_has("fetchL2OrderBook"):
                 orderbook = self.fetch_l2_order_book(pair, 20)
@@ -1300,6 +1313,11 @@ class Exchange:
             crossed = self._dry_is_price_crossed(
                 pair, order["side"], price, orderbook, is_stop=True
             )
+            if crossed and immediate:
+                raise InvalidOrderException(
+                    "Could not create dry stoploss order. Stoploss would trigger immediately."
+                )
+
             if crossed:
                 average = self.get_dry_market_fill_price(
                     pair,
@@ -1879,9 +1897,12 @@ class Exchange:
         orders = []
         if self.exchange_has("fetchClosedOrders"):
             orders = self._api.fetch_closed_orders(pair, since=since_ms)
-            if self.exchange_has("fetchOpenOrders"):
-                orders_open = self._api.fetch_open_orders(pair, since=since_ms)
-                orders.extend(orders_open)
+        if self.exchange_has("fetchCanceledOrders"):
+            orders_canceled = self._api.fetch_canceled_orders(pair, since=since_ms)
+            orders.extend(orders_canceled)
+        if self.exchange_has("fetchOpenOrders"):
+            orders_open = self._api.fetch_open_orders(pair, since=since_ms)
+            orders.extend(orders_open)
         return orders
 
     @retrier(retries=0)
@@ -3914,7 +3935,6 @@ class Exchange:
         is_short: bool,
         open_date: datetime,
         close_date: datetime,
-        time_in_ratio: float | None = None,
     ) -> float:
         """
         calculates the sum of all funding fees that occurred for a pair during a futures trade
@@ -3924,7 +3944,6 @@ class Exchange:
         :param is_short: trade direction
         :param open_date: The date and time that the trade started
         :param close_date: The date and time that the trade ended
-        :param time_in_ratio: Not used by most exchange classes
         """
         fees: float = 0
 
