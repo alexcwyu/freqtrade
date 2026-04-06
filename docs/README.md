@@ -1,5 +1,8 @@
 # Freqtrade -- Project Documentation
 
+> **Last Updated**: 2026-04-06T16:25:30Z  \
+> **Git Hash**: `46f73cacb`
+
 > **Version**: 2026.4-dev | **License**: GPLv3 | **Python**: >= 3.13
 
 ## Overview
