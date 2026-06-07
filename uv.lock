@@ -1161,7 +1161,7 @@ requires-dist = [
     { name = "optuna", marker = "extra == 'hyperopt'", specifier = ">4.0.0" },
     { name = "orjson" },
     { name = "packaging" },
-    { name = "pandas", specifier = ">=2.2.0,<3.0" },
+    { name = "pandas", specifier = ">=2.2.0,<4.0" },
     { name = "plotly", marker = "extra == 'plot'", specifier = ">=4.0" },
     { name = "pre-commit", marker = "extra == 'develop'" },
     { name = "prompt-toolkit" },
