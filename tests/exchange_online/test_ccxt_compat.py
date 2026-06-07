@@ -165,7 +165,6 @@ class TestCCXTExchange:
     def test_ccxt_fetch_tickers(self, exchange: EXCHANGE_FIXTURE_TYPE):
         exch, _, exchange_params = exchange
         pair = exchange_params["pair"]
-
         tickers = exch.get_tickers()
         assert pair in tickers
         assert "ask" in tickers[pair]
@@ -287,7 +286,7 @@ class TestCCXTExchange:
         # Check if last-timeframe is within the last 2 intervals
         now = datetime.now(UTC) - timedelta(minutes=(timeframe_to_minutes(timeframe) * 2))
         assert exch.klines(pair_tf).iloc[-1]["date"] >= timeframe_to_prev_date(timeframe, now)
-        assert exch.klines(pair_tf)["date"].astype(int).iloc[0] // 1e6 == since_ms
+        assert exch.klines(pair_tf)["date"].dt.as_unit("ms").astype("int64").iloc[0] == since_ms
 
     def _ccxt__async_get_candle_history(
         self, exchange, pair: str, timeframe: str, candle_type: CandleType, factor: float = 0.9

@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING, Any
 import psutil
 from dateutil.relativedelta import relativedelta
 from dateutil.tz import tzlocal
-from numpy import inf, int64, isnan, mean, nan
+from numpy import inf, isnan, mean, nan
 from pandas import DataFrame, NaT, read_sql
 from sqlalchemy import func, select
 
@@ -176,6 +176,7 @@ class RPC:
                 timeframe_to_minutes(config["timeframe"]) if "timeframe" in config else 0
             ),
             "exchange": config["exchange"]["name"],
+            "demo_trading": config["exchange"].get("demo_trading", False),
             "strategy": config["strategy"],
             "force_entry_enable": config.get("force_entry_enable", False),
             "exit_pricing": config.get("exit_pricing", {}),
@@ -793,9 +794,9 @@ class RPC:
         results = read_sql("wallet_history", con=Trade.session.bind, parse_dates=["timestamp"])
 
         results = results.rename({"timestamp": "date"}, axis=1)
-        results.loc[:, "__date_ts"] = results.loc[:, "date"].astype("int64") // 1000 // 1000
+        results.loc[:, "__date_ts"] = results.loc[:, "date"].dt.as_unit("ms").astype("int64")
         # Exclude non-bot managed for now
-        results_filtered = results.loc[results["bot_managed"]]
+        results_filtered = results.loc[results["bot_managed"].astype(bool)]
 
         results_final = (
             results_filtered.groupby(["date", "__date_ts"])
@@ -1406,7 +1407,7 @@ class RPC:
         }
 
     def _rpc_locks(self) -> dict[str, Any]:
-        """Returns the  current locks"""
+        """Returns the current locks"""
 
         locks = PairLocks.get_pair_locks(None)
         return {"lock_count": len(locks), "locks": [lock.to_json() for lock in locks]}
@@ -1535,7 +1536,9 @@ class RPC:
                 df_cols = [col for col in dataframe_columns if col in cols_set]
                 dataframe = dataframe.loc[:, df_cols]
 
-            dataframe.loc[:, "__date_ts"] = dataframe.loc[:, "date"].astype(int64) // 1000 // 1000
+            dataframe.loc[:, "__date_ts"] = (
+                dataframe.loc[:, "date"].dt.as_unit("ms").astype("int64")
+            )
             # Move signal close to separate column when signal for easy plotting
             for sig_type in signals.keys():
                 if sig_type in dataframe.columns:
@@ -1545,8 +1548,7 @@ class RPC:
 
             # band-aid until this is fixed:
             # https://github.com/pandas-dev/pandas/issues/45836
-            datetime_types = ["datetime", "datetime64", "datetime64[ns, UTC]"]
-            date_columns = dataframe.select_dtypes(include=datetime_types)
+            date_columns = dataframe.select_dtypes(include=["datetime", "datetime64", "datetimetz"])
             for date_column in date_columns:
                 # replace NaT with `None`
                 dataframe[date_column] = dataframe[date_column].astype(object).replace({NaT: None})
@@ -1692,8 +1694,11 @@ class RPC:
                     else dt_ts(dt_now() - timedelta(days=30)),
                     is_new_pair=True,  # history is never available - so always treat as new pair
                     candle_type=config.get("candle_type_def", CandleType.SPOT),
-                    until_ms=timerange_parsed.stopts,
+                    until_ms=timerange_parsed.stopts * 1000 if timerange_parsed.stopts else None,
                 )
+                if timerange_parsed.stopts and len(data) > 1:
+                    # trim last candle if it is newer than the stop time
+                    data = data.loc[data["date"] <= timerange_parsed.stopdt]
             else:
                 _data = load_data(
                     datadir=config["datadir"],
