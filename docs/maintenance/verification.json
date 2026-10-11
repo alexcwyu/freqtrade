@@ -1,58 +1,8 @@
 {
-  "repo": "freqtrade",
-  "checks": [
-    {
-      "command": [
-        "uv",
-        "lock",
-        "--upgrade",
-        "--python",
-        "3.15"
-      ],
-      "label": "lock-3.15",
-      "exit_code": 0,
-      "seconds": 1.95,
-      "log": "freqtrade-lock-3.15.log"
-    },
-    {
-      "command": [
-        "uv",
-        "sync",
-        "--all-extras",
-        "--python",
-        "3.15"
-      ],
-      "label": "sync-3.15",
-      "exit_code": 2,
-      "seconds": 0.04,
-      "log": "freqtrade-sync-3.15.log"
-    },
-    {
-      "command": [
-        "uv",
-        "lock",
-        "--upgrade",
-        "--python",
-        "3.14"
-      ],
-      "label": "lock-3.14",
-      "exit_code": 0,
-      "seconds": 0.61,
-      "log": "freqtrade-lock-3.14.log"
-    },
-    {
-      "command": [
-        "uv",
-        "sync",
-        "--all-extras",
-        "--python",
-        "3.14"
-      ],
-      "label": "sync-3.14",
-      "exit_code": 0,
-      "seconds": 7.88,
-      "log": "freqtrade-sync-3.14.log"
-    },
+  "repository": "freqtrade",
+  "source_commit_before_documentation_commit": "a30f8952261b7a1844ac5c4f0d2fd30a7c6b8f65",
+  "recorded_on": "2026-10-12",
+  "records": [
     {
       "command": [
         "uv",
@@ -60,252 +10,15 @@
         "--python",
         "3.14"
       ],
-      "label": "build",
       "exit_code": 0,
       "seconds": 2.34,
-      "log": "freqtrade-build.log"
-    },
-    {
-      "command": [
-        "/Users/alex/workspaces/trading/freqtrade/.venv/bin/python",
-        "-m",
-        "compileall",
-        "-q",
-        "src"
-      ],
-      "label": "compile",
-      "exit_code": 0,
-      "seconds": 0.71,
-      "log": "freqtrade-compile.log"
-    },
-    {
-      "command": [
-        "/Users/alex/workspaces/trading/freqtrade/.venv/bin/python",
-        "-m",
-        "pytest",
-        "tests"
-      ],
-      "label": "tests",
-      "exit_code": 2,
-      "seconds": 41.88,
-      "log": "freqtrade-tests.log"
-    },
-    {
-      "command": [
-        "uv",
-        "sync",
-        "--all-extras",
-        "--python",
-        "3.14"
-      ],
-      "label": "latest-sync",
-      "exit_code": 0,
-      "seconds": 1.56,
-      "log": "freqtrade-latest-sync.log"
-    },
-    {
-      "command": [
-        ".venv/bin/python",
-        "-m",
-        "pytest",
-        "tests"
-      ],
-      "label": "tests-2",
-      "exit_code": 1,
-      "seconds": 457.4,
-      "log": "freqtrade-tests-2.log"
-    },
-    {
-      "command": [
-        ".venv/bin/python",
-        "-m",
-        "pytest",
-        "tests"
-      ],
-      "label": "tests-3",
-      "exit_code": 1,
-      "seconds": 358.03,
-      "log": "freqtrade-tests-3.log"
-    },
-    {
-      "command": [
-        "uv",
-        "sync",
-        "--all-extras",
-        "--python",
-        "3.14"
-      ],
-      "label": "current-sync",
-      "exit_code": 0,
-      "seconds": 9.94,
-      "log": "freqtrade-current-sync.log"
-    },
-    {
-      "command": [
-        ".venv/bin/python",
-        "-m",
-        "pytest",
-        "tests/freqai/test_freqai_interface.py",
-        "-x"
-      ],
-      "label": "freqai-diagnostic",
-      "exit_code": 1,
-      "seconds": 28.5,
-      "log": "freqtrade-freqai-diagnostic.log"
-    },
-    {
-      "command": [
-        ".venv/bin/python",
-        "-m",
-        "pytest",
-        "tests/freqai/test_freqai_interface.py",
-        "-x"
-      ],
-      "label": "freqai-diagnostic-2",
-      "exit_code": 1,
-      "seconds": 37.09,
-      "log": "freqtrade-freqai-diagnostic-2.log"
-    },
-    {
-      "command": [
-        ".venv/bin/python",
-        "-m",
-        "pytest",
-        "tests/freqai/test_freqai_interface.py",
-        "-x"
-      ],
-      "label": "freqai-diagnostic-3",
-      "exit_code": 1,
-      "seconds": 28.47,
-      "log": "freqtrade-freqai-diagnostic-3.log"
-    },
-    {
-      "command": [
-        ".venv/bin/python",
-        "-m",
-        "pytest",
-        "tests/freqai/test_freqai_interface.py",
-        "-x"
-      ],
-      "label": "freqai-diagnostic-4",
-      "exit_code": 1,
-      "seconds": 31.2,
-      "log": "freqtrade-freqai-diagnostic-4.log"
-    },
-    {
-      "command": [
-        "uv",
-        "lock",
-        "--upgrade"
-      ],
-      "label": "final-lock",
-      "exit_code": 0,
-      "seconds": 0.52,
-      "log": "freqtrade-final-lock.log"
-    },
-    {
-      "command": [
-        "uv",
-        "sync",
-        "--all-extras",
-        "--frozen",
-        "--python",
-        "3.14.8"
-      ],
-      "label": "final-sync",
-      "exit_code": 0,
-      "seconds": 0.1,
-      "log": "freqtrade-final-sync.log"
-    },
-    {
-      "command": [
-        "uv",
-        "build",
-        "--python",
-        "3.14.8"
-      ],
-      "label": "final-build",
-      "exit_code": 0,
-      "seconds": 3.09,
-      "log": "freqtrade-final-build.log"
-    },
-    {
-      "command": [
-        ".venv/bin/python",
-        "-m",
-        "compileall",
-        "-q",
-        "src"
-      ],
-      "label": "final-compile",
-      "exit_code": 0,
-      "seconds": 0.14,
-      "log": "freqtrade-final-compile.log"
-    },
-    {
-      "command": [
-        ".venv/bin/python",
-        "-m",
-        "pytest",
-        "tests"
-      ],
-      "label": "tests-4",
-      "exit_code": 1,
-      "seconds": 699.84,
-      "log": "freqtrade-tests-4.log"
-    },
-    {
-      "command": [
-        ".venv/bin/python",
-        "-m",
-        "pytest",
-        "tests/freqai/test_freqai_interface.py",
-        "-x"
-      ],
-      "label": "freqai-diagnostic-5",
-      "exit_code": 0,
-      "seconds": 53.92,
-      "log": "freqtrade-freqai-diagnostic-5.log"
-    },
-    {
-      "command": [
-        ".venv/bin/python",
-        "-m",
-        "pytest",
-        "tests"
-      ],
-      "label": "final-tests",
-      "exit_code": 1,
-      "seconds": 213.71,
-      "log": "freqtrade-final-tests.log"
-    },
-    {
-      "command": [
-        ".venv/bin/python",
-        "-m",
-        "pip_audit",
-        "--progress-spinner=off",
-        "--ignore-vuln",
-        "CVE-2026-4539",
-        "--skip-editable"
-      ],
-      "label": "dependency-audit",
-      "exit_code": 1,
-      "seconds": 1.73,
-      "log": "freqtrade-dependency-audit.log"
-    },
-    {
-      "command": [
-        "uv",
-        "sync",
-        "--all-extras",
-        "--python",
-        "3.14.8"
-      ],
-      "label": "security-sync",
-      "exit_code": 0,
-      "seconds": 0.71,
-      "log": "freqtrade-security-sync.log"
+      "check": "build",
+      "original_log": "freqtrade-build.log",
+      "log_sha256": "7b11355771cedb3eae38676457355963383827c316da703d38ad332442f9ea6c",
+      "outcomes": [
+        "Successfully built dist/freqtrade-2025.1.tar.gz",
+        "Successfully built dist/freqtrade-2025.1-py3-none-any.whl"
+      ]
     },
     {
       "command": [
@@ -317,10 +30,95 @@
         "tests/test_log_setup.py",
         "tests/test_pip_audit.py"
       ],
-      "label": "cleanup-tests",
       "exit_code": 0,
       "seconds": 18.92,
-      "log": "freqtrade-cleanup-tests.log"
+      "check": "cleanup-tests",
+      "original_log": "freqtrade-cleanup-tests.log",
+      "log_sha256": "009536b506d7f13ea2f698df402202e93d8b76d37c939163f79308176f894d25",
+      "outcomes": [
+        "129 passed, 1 skipped in 13.87s"
+      ]
+    },
+    {
+      "command": [
+        "<workspace>/freqtrade/.venv/bin/python",
+        "-m",
+        "compileall",
+        "-q",
+        "src"
+      ],
+      "exit_code": 0,
+      "seconds": 0.71,
+      "check": "compile",
+      "original_log": "freqtrade-compile.log",
+      "log_sha256": "e38561006402bf07232726dc41daff6f22a75c51768ac66d93b35181c444ac55",
+      "outcomes": []
+    },
+    {
+      "command": [
+        "uv",
+        "sync",
+        "--all-extras",
+        "--python",
+        "3.14"
+      ],
+      "exit_code": 0,
+      "seconds": 9.94,
+      "check": "current-sync",
+      "original_log": "freqtrade-current-sync.log",
+      "log_sha256": "3e9e87cbfafa609a20569fb0e86a4182e8ce6a50fc6c97774335cedb127364d4",
+      "outcomes": []
+    },
+    {
+      "command": [
+        ".venv/bin/python",
+        "-m",
+        "pip_audit",
+        "--progress-spinner=off",
+        "--ignore-vuln",
+        "CVE-2026-4539",
+        "--skip-editable"
+      ],
+      "exit_code": 1,
+      "seconds": 1.73,
+      "check": "dependency-audit",
+      "original_log": "freqtrade-dependency-audit.log",
+      "log_sha256": "19e7b038e8948147ef6165d8427d8757818c8ccf0c330ada7d6f08a9387c626d",
+      "outcomes": []
+    },
+    {
+      "command": [
+        "uv",
+        "build",
+        "--python",
+        "3.14.8"
+      ],
+      "exit_code": 0,
+      "seconds": 3.09,
+      "check": "final-build",
+      "original_log": "freqtrade-final-build.log",
+      "log_sha256": "9223309f83326d5a46032b6c5413de15ff9c559bd1d2d17315fd93438de1f986",
+      "outcomes": [
+        "Successfully built dist/freqtrade-2026.10.dev0.tar.gz",
+        "Successfully built dist/freqtrade-2026.10.dev0-py3-none-any.whl"
+      ]
+    },
+    {
+      "command": [
+        "uv",
+        "build",
+        "--python",
+        "3.14.8"
+      ],
+      "exit_code": 0,
+      "seconds": 1.64,
+      "check": "final-build-2",
+      "original_log": "freqtrade-final-build-2.log",
+      "log_sha256": "9223309f83326d5a46032b6c5413de15ff9c559bd1d2d17315fd93438de1f986",
+      "outcomes": [
+        "Successfully built dist/freqtrade-2026.10.dev0.tar.gz",
+        "Successfully built dist/freqtrade-2026.10.dev0-py3-none-any.whl"
+      ]
     },
     {
       "command": [
@@ -328,10 +126,133 @@
         "-m",
         "pytest"
       ],
-      "label": "final-current-tests",
+      "exit_code": 0,
+      "seconds": 239.04,
+      "check": "final-clean-tests",
+      "original_log": "freqtrade-final-clean-tests.log",
+      "log_sha256": "fe87c69edf1bffa9df8ac10cc0485280fbfa42b975974f4c7cbcb47ec659a834",
+      "outcomes": [
+        "4612 passed, 35 skipped, 363 deselected in 231.36s (0:03:51)"
+      ]
+    },
+    {
+      "command": [
+        ".venv/bin/python",
+        "-m",
+        "compileall",
+        "-q",
+        "src"
+      ],
+      "exit_code": 0,
+      "seconds": 0.14,
+      "check": "final-compile",
+      "original_log": "freqtrade-final-compile.log",
+      "log_sha256": "4dabb76013caec51c3f56da271eb0a58b695f2bfcf5327d2708624abfe11fb50",
+      "outcomes": []
+    },
+    {
+      "command": [
+        ".venv/bin/python",
+        "-m",
+        "compileall",
+        "-q",
+        "src"
+      ],
+      "exit_code": 0,
+      "seconds": 0.13,
+      "check": "final-compile-2",
+      "original_log": "freqtrade-final-compile-2.log",
+      "log_sha256": "4dabb76013caec51c3f56da271eb0a58b695f2bfcf5327d2708624abfe11fb50",
+      "outcomes": []
+    },
+    {
+      "command": [
+        ".venv/bin/python",
+        "-m",
+        "pytest"
+      ],
       "exit_code": 1,
       "seconds": 187.17,
-      "log": "freqtrade-final-current-tests.log"
+      "check": "final-current-tests",
+      "original_log": "freqtrade-final-current-tests.log",
+      "log_sha256": "bf803a8c7c5df446ba096483c36aeb7c55b10fa7fd10c999133af22daa60e0aa",
+      "outcomes": [
+        "1 failed, 4610 passed, 35 skipped, 363 deselected, 1 error in 180.87s (0:03:00)"
+      ]
+    },
+    {
+      "command": [
+        "uv",
+        "lock",
+        "--upgrade"
+      ],
+      "exit_code": 0,
+      "seconds": 0.52,
+      "check": "final-lock",
+      "original_log": "freqtrade-final-lock.log",
+      "log_sha256": "cba77d920652a268d47e979f378ce967faaf42eff27bba3eda84a67e0f5a0672",
+      "outcomes": []
+    },
+    {
+      "command": [
+        "uv",
+        "lock",
+        "--upgrade"
+      ],
+      "exit_code": 0,
+      "seconds": 1.75,
+      "check": "final-lock-2",
+      "original_log": "freqtrade-final-lock-2.log",
+      "log_sha256": "fe1ca3ce4c3dd932eb8983020f79b83b1291a699ba554b39f252f68bc312283f",
+      "outcomes": []
+    },
+    {
+      "command": [
+        "uv",
+        "sync",
+        "--all-extras",
+        "--frozen",
+        "--python",
+        "3.14.8"
+      ],
+      "exit_code": 0,
+      "seconds": 0.1,
+      "check": "final-sync",
+      "original_log": "freqtrade-final-sync.log",
+      "log_sha256": "d0e21bedc9d64dd6166e240f9ba78bedcba71c7abe3ee84853492d426372a098",
+      "outcomes": []
+    },
+    {
+      "command": [
+        "uv",
+        "sync",
+        "--all-extras",
+        "--frozen",
+        "--python",
+        "3.14.8"
+      ],
+      "exit_code": 0,
+      "seconds": 0.07,
+      "check": "final-sync-2",
+      "original_log": "freqtrade-final-sync-2.log",
+      "log_sha256": "988ab86efceb4fbcfb48113b43f733520bf22d9d1b0e5a1e3090285399e13bc2",
+      "outcomes": []
+    },
+    {
+      "command": [
+        ".venv/bin/python",
+        "-m",
+        "pytest",
+        "tests"
+      ],
+      "exit_code": 1,
+      "seconds": 213.71,
+      "check": "final-tests",
+      "original_log": "freqtrade-final-tests.log",
+      "log_sha256": "9d5597cd0dbedc80f31ef8c8bc2a9bad578f580ccbd10e14f205b1e57ed909e0",
+      "outcomes": [
+        "9 failed, 4598 passed, 35 skipped, 363 deselected, 5 errors in 203.16s (0:03:23)"
+      ]
     },
     {
       "command": [
@@ -339,12 +260,705 @@
         "-m",
         "pytest"
       ],
-      "label": "fixture-final-tests",
       "exit_code": 1,
       "seconds": 252.29,
-      "log": "freqtrade-fixture-final-tests.log"
+      "check": "fixture-final-tests",
+      "original_log": "freqtrade-fixture-final-tests.log",
+      "log_sha256": "38e4561c677515afa275a9512c2e2cb48fdddd0665bbd40c25ce165a39fbaa5f",
+      "outcomes": [
+        "1 failed, 4610 passed, 35 skipped, 363 deselected, 1 error in 242.31s (0:04:02)"
+      ]
     },
     {
+      "command": [
+        ".venv/bin/python",
+        "-m",
+        "pytest",
+        "tests/freqai/test_freqai_interface.py",
+        "-x"
+      ],
+      "exit_code": 1,
+      "seconds": 28.5,
+      "check": "freqai-diagnostic",
+      "original_log": "freqtrade-freqai-diagnostic.log",
+      "log_sha256": "d16706266f794caaaa963b4a373789a06c268c0b02639ba6fcacbb26dc59b2eb",
+      "outcomes": [
+        "1 failed, 3 passed, 7 skipped in 12.15s"
+      ]
+    },
+    {
+      "command": [
+        ".venv/bin/python",
+        "-m",
+        "pytest",
+        "tests/freqai/test_freqai_interface.py",
+        "-x"
+      ],
+      "exit_code": 1,
+      "seconds": 37.09,
+      "check": "freqai-diagnostic-2",
+      "original_log": "freqtrade-freqai-diagnostic-2.log",
+      "log_sha256": "b0f61884f730cfde916c3e2779abe7d9e09fa451d012dcfd95066e4fc0b5a300",
+      "outcomes": [
+        "1 failed, 5 passed, 7 skipped in 19.58s"
+      ]
+    },
+    {
+      "command": [
+        ".venv/bin/python",
+        "-m",
+        "pytest",
+        "tests/freqai/test_freqai_interface.py",
+        "-x"
+      ],
+      "exit_code": 1,
+      "seconds": 28.47,
+      "check": "freqai-diagnostic-3",
+      "original_log": "freqtrade-freqai-diagnostic-3.log",
+      "log_sha256": "0c7c8227518659d6f8088fe34cccb7ec4f4d40d899543a0f2128e0cdc1f1a213",
+      "outcomes": [
+        "1 failed, 5 passed, 7 skipped in 13.94s"
+      ]
+    },
+    {
+      "command": [
+        ".venv/bin/python",
+        "-m",
+        "pytest",
+        "tests/freqai/test_freqai_interface.py",
+        "-x"
+      ],
+      "exit_code": 1,
+      "seconds": 31.2,
+      "check": "freqai-diagnostic-4",
+      "original_log": "freqtrade-freqai-diagnostic-4.log",
+      "log_sha256": "5ce60b00e448e6d3132b28905647acacb6bc0260373f7bdc6f37b72e7dcfb251",
+      "outcomes": [
+        "1 failed, 5 passed, 7 skipped in 16.61s"
+      ]
+    },
+    {
+      "command": [
+        ".venv/bin/python",
+        "-m",
+        "pytest",
+        "tests/freqai/test_freqai_interface.py",
+        "-x"
+      ],
+      "exit_code": 0,
+      "seconds": 53.92,
+      "check": "freqai-diagnostic-5",
+      "original_log": "freqtrade-freqai-diagnostic-5.log",
+      "log_sha256": "bc294dccc535db4ca6ab4cb7d518facb7b7fdffe47704e4a20f1001bbd24a06f",
+      "outcomes": [
+        "25 passed, 14 skipped in 42.28s"
+      ]
+    },
+    {
+      "command": [
+        "uv",
+        "sync",
+        "--all-extras",
+        "--python",
+        "3.14"
+      ],
+      "exit_code": 0,
+      "seconds": 1.56,
+      "check": "latest-sync",
+      "original_log": "freqtrade-latest-sync.log",
+      "log_sha256": "6cc9f5e785b7049c071fcfa7954c878f139d72704c132368494d91a9977c0a4c",
+      "outcomes": []
+    },
+    {
+      "command": [
+        "uv",
+        "lock",
+        "--upgrade",
+        "--python",
+        "3.14"
+      ],
+      "exit_code": 0,
+      "seconds": 0.61,
+      "check": "lock-3.14",
+      "original_log": "freqtrade-lock-3.14.log",
+      "log_sha256": "03ea0518cb03a8865042db15f56d66861355381e64a58d8be5c97740f7cdcfd3",
+      "outcomes": []
+    },
+    {
+      "command": [
+        "uv",
+        "lock",
+        "--upgrade",
+        "--python",
+        "3.15"
+      ],
+      "exit_code": 0,
+      "seconds": 1.95,
+      "check": "lock-3.15",
+      "original_log": "freqtrade-lock-3.15.log",
+      "log_sha256": "7506fb1eaaa0ee8fb0b4df4f464f96a300e1f0506ce9996e1c634eb7656f2a94",
+      "outcomes": []
+    },
+    {
+      "command": [
+        "uv",
+        "sync",
+        "--all-extras",
+        "--python",
+        "3.14.8"
+      ],
+      "exit_code": 0,
+      "seconds": 0.71,
+      "check": "security-sync",
+      "original_log": "freqtrade-security-sync.log",
+      "log_sha256": "14e51038119e98e059119f300befcfb9cdff139f4ecda325ec0df338b869833e",
+      "outcomes": []
+    },
+    {
+      "command": [
+        "uv",
+        "build",
+        "--python",
+        "3.15"
+      ],
+      "exit_code": 0,
+      "seconds": 0.88,
+      "check": "strategies-build",
+      "original_log": "freqtrade-strategies-build.log",
+      "log_sha256": "855eac09dc16881a417cc0ed74fb42181af4f5a9549e5e2f99709b6b08c27ad4",
+      "outcomes": [
+        "Successfully built dist/freqtrade_strategies-0.1.0.tar.gz",
+        "Successfully built dist/freqtrade_strategies-0.1.0-py3-none-any.whl"
+      ]
+    },
+    {
+      "command": [
+        "<workspace>/freqtrade-strategies/.venv/bin/python",
+        "-m",
+        "compileall",
+        "-q",
+        "src"
+      ],
+      "exit_code": 0,
+      "seconds": 0.13,
+      "check": "strategies-compile",
+      "original_log": "freqtrade-strategies-compile.log",
+      "log_sha256": "14400f50cae7a5cfb8da67d8f9f9ae9e0e61aa53fd8e9a918048f23756b3bcba",
+      "outcomes": []
+    },
+    {
+      "command": [
+        "uv",
+        "build",
+        "--python",
+        "3.15.0"
+      ],
+      "exit_code": 0,
+      "seconds": 1.26,
+      "check": "strategies-final-build",
+      "original_log": "freqtrade-strategies-final-build.log",
+      "log_sha256": "dc43964b0c0d361b166675328d6ee33b1e0d30c62852de62a2cceac531792abd",
+      "outcomes": [
+        "Successfully built dist/freqtrade_strategies-0.1.0.tar.gz",
+        "Successfully built dist/freqtrade_strategies-0.1.0-py3-none-any.whl"
+      ]
+    },
+    {
+      "command": [
+        "uv",
+        "build",
+        "--python",
+        "3.15.0"
+      ],
+      "exit_code": 0,
+      "seconds": 0.95,
+      "check": "strategies-final-build-2",
+      "original_log": "freqtrade-strategies-final-build-2.log",
+      "log_sha256": "dc43964b0c0d361b166675328d6ee33b1e0d30c62852de62a2cceac531792abd",
+      "outcomes": [
+        "Successfully built dist/freqtrade_strategies-0.1.0.tar.gz",
+        "Successfully built dist/freqtrade_strategies-0.1.0-py3-none-any.whl"
+      ]
+    },
+    {
+      "command": [
+        ".venv/bin/python",
+        "-m",
+        "compileall",
+        "-q",
+        "src"
+      ],
+      "exit_code": 0,
+      "seconds": 0.08,
+      "check": "strategies-final-compile",
+      "original_log": "freqtrade-strategies-final-compile.log",
+      "log_sha256": "4dabb76013caec51c3f56da271eb0a58b695f2bfcf5327d2708624abfe11fb50",
+      "outcomes": []
+    },
+    {
+      "command": [
+        ".venv/bin/python",
+        "-m",
+        "compileall",
+        "-q",
+        "src"
+      ],
+      "exit_code": 0,
+      "seconds": 0.08,
+      "check": "strategies-final-compile-2",
+      "original_log": "freqtrade-strategies-final-compile-2.log",
+      "log_sha256": "4dabb76013caec51c3f56da271eb0a58b695f2bfcf5327d2708624abfe11fb50",
+      "outcomes": []
+    },
+    {
+      "command": [
+        "uv",
+        "lock",
+        "--upgrade"
+      ],
+      "exit_code": 0,
+      "seconds": 0.2,
+      "check": "strategies-final-lock",
+      "original_log": "freqtrade-strategies-final-lock.log",
+      "log_sha256": "0d8ef719024742a7746a6bccd4d914344b18f872ae05e9107cf727c390728c79",
+      "outcomes": []
+    },
+    {
+      "command": [
+        "uv",
+        "lock",
+        "--upgrade"
+      ],
+      "exit_code": 0,
+      "seconds": 0.18,
+      "check": "strategies-final-lock-2",
+      "original_log": "freqtrade-strategies-final-lock-2.log",
+      "log_sha256": "44a1f399479c87ae3f3e26b7a473a81450d0a6c8c15b7261922700552195e5af",
+      "outcomes": []
+    },
+    {
+      "command": [
+        "uv",
+        "sync",
+        "--all-extras",
+        "--frozen",
+        "--python",
+        "3.15.0"
+      ],
+      "exit_code": 0,
+      "seconds": 0.03,
+      "check": "strategies-final-sync",
+      "original_log": "freqtrade-strategies-final-sync.log",
+      "log_sha256": "05eafd5c219154b4db8a9a13a3f37c9ae432bcd6a6b0b89f88802bcb643f0201",
+      "outcomes": []
+    },
+    {
+      "command": [
+        "uv",
+        "sync",
+        "--all-extras",
+        "--frozen",
+        "--python",
+        "3.15.0"
+      ],
+      "exit_code": 0,
+      "seconds": 0.02,
+      "check": "strategies-final-sync-2",
+      "original_log": "freqtrade-strategies-final-sync-2.log",
+      "log_sha256": "05eafd5c219154b4db8a9a13a3f37c9ae432bcd6a6b0b89f88802bcb643f0201",
+      "outcomes": []
+    },
+    {
+      "command": [
+        "uv",
+        "lock",
+        "--upgrade",
+        "--python",
+        "3.15"
+      ],
+      "exit_code": 0,
+      "seconds": 0.24,
+      "check": "strategies-lock-3.15",
+      "original_log": "freqtrade-strategies-lock-3.15.log",
+      "log_sha256": "31a7542f5bdffdb87326fc82a2f40193b2e3d8d4891a9e0a41970a56b2efd21c",
+      "outcomes": []
+    },
+    {
+      "command": [
+        "uv",
+        "sync",
+        "--all-extras",
+        "--python",
+        "3.15"
+      ],
+      "exit_code": 0,
+      "seconds": 0.57,
+      "check": "strategies-sync-3.15",
+      "original_log": "freqtrade-strategies-sync-3.15.log",
+      "log_sha256": "9d9fb9bdf9362f10f4a6c36ce178f798b447f39432e6fb4f38ce23d7fa6775b2",
+      "outcomes": []
+    },
+    {
+      "command": [
+        "<workspace>/freqtrade-strategies/.venv/bin/python",
+        "-m",
+        "pytest",
+        "tests"
+      ],
+      "exit_code": 5,
+      "seconds": 0.56,
+      "check": "strategies-tests",
+      "original_log": "freqtrade-strategies-tests.log",
+      "log_sha256": "b6f360291ae07fe94f4d171dabf9142301bdd8d6afd1acd375425e76cecdbea3",
+      "outcomes": []
+    },
+    {
+      "command": [
+        "uv",
+        "sync",
+        "--all-extras",
+        "--python",
+        "3.14"
+      ],
+      "exit_code": 0,
+      "seconds": 7.88,
+      "check": "sync-3.14",
+      "original_log": "freqtrade-sync-3.14.log",
+      "log_sha256": "7cbcd702fc2770eab511207a22a438e9b2a67770e4f33fa5f2b443602a55fb4c",
+      "outcomes": []
+    },
+    {
+      "command": [
+        "uv",
+        "sync",
+        "--all-extras",
+        "--python",
+        "3.15"
+      ],
+      "exit_code": 2,
+      "seconds": 0.04,
+      "check": "sync-3.15",
+      "original_log": "freqtrade-sync-3.15.log",
+      "log_sha256": "45608521bd73788339799aacdf59e4eb9f270ebe51225eb97d5c9fd02b636b1d",
+      "outcomes": []
+    },
+    {
+      "command": [
+        "<workspace>/freqtrade/.venv/bin/python",
+        "-m",
+        "pytest",
+        "tests"
+      ],
+      "exit_code": 2,
+      "seconds": 41.88,
+      "check": "tests",
+      "original_log": "freqtrade-tests.log",
+      "log_sha256": "35198960135953c2802dbe5c3814e68482917b56d3610379bcdc9e3358de8bc8",
+      "outcomes": []
+    },
+    {
+      "command": [
+        ".venv/bin/python",
+        "-m",
+        "pytest",
+        "tests"
+      ],
+      "exit_code": 1,
+      "seconds": 457.4,
+      "check": "tests-2",
+      "original_log": "freqtrade-tests-2.log",
+      "log_sha256": "5fc7be798acb51cda2c8ffe82a9157b18a3576eea8b95ab48cbfc0a008573e55",
+      "outcomes": [
+        "149 failed, 4453 passed, 35 skipped, 363 deselected, 10 errors in 437.34s (0:07:17)"
+      ]
+    },
+    {
+      "command": [
+        ".venv/bin/python",
+        "-m",
+        "pytest",
+        "tests"
+      ],
+      "exit_code": 1,
+      "seconds": 358.03,
+      "check": "tests-3",
+      "original_log": "freqtrade-tests-3.log",
+      "log_sha256": "d86a69026f4905a4002ea71ee741af87875729a020e50436571b5945f918621b",
+      "outcomes": [
+        "17 failed, 4589 passed, 35 skipped, 363 deselected, 6 errors in 348.74s (0:05:48)"
+      ]
+    },
+    {
+      "command": [
+        ".venv/bin/python",
+        "-m",
+        "pytest",
+        "tests"
+      ],
+      "exit_code": 1,
+      "seconds": 699.84,
+      "check": "tests-4",
+      "original_log": "freqtrade-tests-4.log",
+      "log_sha256": "ae38ecdf7493bc2ae69a459f978406c85ff88671f66eecc695ef0ef7dfb28e28",
+      "outcomes": [
+        "13 failed, 4594 passed, 35 skipped, 363 deselected, 5 errors in 649.46s (0:10:49)"
+      ]
+    }
+  ],
+  "summary": {
+    "repo": "freqtrade",
+    "started": "2026-10-12T00:14:01+0800",
+    "python": "3.14.8",
+    "head": "d5e06dbc1f818b248b1aead63b3b48c476aa8447",
+    "branch": "feature/ayu_develop",
+    "runtime_inventory": {
+      "executable": "<workspace>/freqtrade/.venv/bin/python",
+      "packages": {
+        "Bottleneck": "1.6.0",
+        "CacheControl": "0.14.4",
+        "Farama-Notifications": "0.0.6",
+        "Jinja2": "3.1.6",
+        "Mako": "1.4.3",
+        "Markdown": "3.11",
+        "MarkupSafe": "3.0.4",
+        "PyJWT": "2.15.1",
+        "PyYAML": "6.0.3",
+        "Pygments": "2.21.0",
+        "SQLAlchemy": "2.1.4",
+        "Send2Trash": "2.1.0",
+        "TA-Lib": "0.8.1",
+        "Werkzeug": "3.1.9",
+        "absl-py": "2.5.1",
+        "aiofiles": "25.1.0",
+        "aiohappyeyeballs": "2.7.1",
+        "aiohttp": "3.14.5",
+        "aiohttp-fast-zlib": "0.3.0",
+        "aiosignal": "1.4.0",
+        "alembic": "1.20.0",
+        "annotated-doc": "0.0.5",
+        "annotated-types": "0.8.0",
+        "anyio": "4.15.1",
+        "appnope": "1.0.0",
+        "argon2-cffi": "25.1.0",
+        "argon2-cffi-bindings": "26.1.0",
+        "arrow": "1.4.0",
+        "ast-comments": "1.3.0",
+        "ast_serialize": "0.12.1",
+        "asttokens": "3.0.2",
+        "async-lru": "2.3.0",
+        "attrs": "26.1.0",
+        "babel": "2.18.0",
+        "beautifulsoup4": "4.15.0",
+        "bleach": "6.4.0",
+        "boolean.py": "5.0",
+        "build": "1.6.1",
+        "cachetools": "7.2.1",
+        "ccxt": "4.5.85",
+        "certifi": "2026.6.17",
+        "cffi": "2.0.0",
+        "cfgv": "3.5.0",
+        "charset-normalizer": "3.4.7",
+        "click": "8.5.0",
+        "cloudpickle": "3.1.2",
+        "cmaes": "0.13.1",
+        "colorlog": "6.12.0",
+        "comm": "0.2.3",
+        "coverage": "7.16.2",
+        "cryptography": "50.0.2",
+        "cyclonedx-python-lib": "11.12.0",
+        "datasieve": "0.1.9",
+        "debugpy": "1.8.22",
+        "defusedxml": "0.7.1",
+        "distlib": "0.4.3",
+        "execnet": "2.1.2",
+        "executing": "2.3.0",
+        "fastapi": "0.143.0",
+        "fastjsonschema": "2.22.2",
+        "filelock": "4.1.1",
+        "fqdn": "1.6.0",
+        "freqtrade": "2026.10.dev0",
+        "freqtrade-client": "2026.9",
+        "frozenlist": "1.8.0",
+        "fsspec": "2026.9.0",
+        "ft-pandas-ta": "0.3.16",
+        "grpcio": "1.84.0",
+        "gymnasium": "1.4.0",
+        "h11": "0.16.0",
+        "httpcore": "1.0.9",
+        "httpcore2": "2.13.1",
+        "httpx": "0.28.1",
+        "httpx2": "2.13.1",
+        "humanize": "4.16.0",
+        "identify": "2.6.20",
+        "idna": "3.18",
+        "iniconfig": "2.3.1",
+        "ipykernel": "7.4.0",
+        "ipython": "9.17.1",
+        "ipython_pygments_lexers": "1.1.1",
+        "ipywidgets": "8.1.9",
+        "isoduration": "20.11.0",
+        "janus": "2.0.0",
+        "jedi": "0.20.0",
+        "joblib": "1.6.0",
+        "json5": "0.17.3",
+        "jsonpointer": "3.2.1",
+        "jsonschema": "4.26.0",
+        "jsonschema-specifications": "2025.9.1",
+        "jupyter": "1.1.1",
+        "jupyter-console": "6.6.3",
+        "jupyter-events": "0.12.1",
+        "jupyter-lsp": "2.3.1",
+        "jupyter_builder": "1.2.3",
+        "jupyter_client": "8.10.0",
+        "jupyter_core": "5.9.1",
+        "jupyter_server": "2.21.1",
+        "jupyter_server_terminals": "0.5.4",
+        "jupyterlab": "4.6.4",
+        "jupyterlab_pygments": "0.3.0",
+        "jupyterlab_server": "2.28.1",
+        "jupyterlab_widgets": "3.0.17",
+        "lark": "1.3.1",
+        "librt": "0.16.0",
+        "license-expression": "30.4.4",
+        "lightgbm": "4.7.0",
+        "markdown-it-py": "4.2.0",
+        "matplotlib-inline": "0.2.2",
+        "mdurl": "0.1.2",
+        "mistune": "3.3.4",
+        "mpmath": "1.3.0",
+        "msgpack": "1.2.3",
+        "multidict": "7.1.0",
+        "mypy": "2.4.0",
+        "mypy_extensions": "1.1.0",
+        "narwhals": "2.27.1",
+        "nbclient": "0.11.0",
+        "nbconvert": "7.17.1",
+        "nbformat": "5.11.1",
+        "nbstripout": "0.9.1",
+        "nest-asyncio2": "1.7.4",
+        "networkx": "3.7",
+        "nodeenv": "1.11.0",
+        "notebook": "7.6.3",
+        "notebook_shim": "0.2.4",
+        "numexpr": "2.14.2",
+        "numpy": "2.5.4",
+        "numpy-typing-compat": "20260602.2.5",
+        "opentelemetry-api": "1.45.1",
+        "optuna": "5.0.0",
+        "optype": "0.19.0",
+        "orjson": "3.11.9",
+        "packageurl-python": "0.17.6",
+        "packaging": "26.3",
+        "pandas": "3.0.6",
+        "pandocfilters": "1.5.1",
+        "parso": "0.8.7",
+        "pathspec": "1.1.1",
+        "pexpect": "4.9.0",
+        "pillow": "12.3.0",
+        "pip": "26.2.1",
+        "pip-requirements-parser": "32.0.1",
+        "pip_api": "0.0.35",
+        "pip_audit": "2.10.1",
+        "platformdirs": "4.13.0",
+        "plotly": "7.1.0",
+        "pluggy": "1.6.0",
+        "pre_commit": "4.6.2",
+        "prometheus_client": "0.26.0",
+        "prompt_toolkit": "3.0.53",
+        "propcache": "0.5.2",
+        "protobuf": "7.36.2",
+        "psutil": "7.2.2",
+        "ptyprocess": "0.7.0",
+        "pure_eval": "0.2.4",
+        "py-serializable": "2.1.0",
+        "pyarrow": "26.0.0",
+        "pycoingecko": "3.2.0",
+        "pycparser": "3.0",
+        "pydantic": "2.14.0",
+        "pydantic_core": "2.50.0",
+        "pyparsing": "3.3.3",
+        "pyproject_hooks": "1.3.3",
+        "pytest": "9.1.1",
+        "pytest-asyncio": "1.4.0",
+        "pytest-cov": "7.1.0",
+        "pytest-mock": "3.16.0",
+        "pytest-random-order": "1.2.0",
+        "pytest-timeout": "2.4.0",
+        "pytest-xdist": "3.8.0",
+        "python-dateutil": "2.9.0.post0",
+        "python-discovery": "1.6.2",
+        "python-json-logger": "4.2.0",
+        "python-rapidjson": "1.25",
+        "python-telegram-bot": "22.8",
+        "pytz": "2026.5",
+        "pyzmq": "27.2.0",
+        "questionary": "2.1.1",
+        "referencing": "0.37.0",
+        "requests": "2.34.2",
+        "rfc3339-validator": "0.1.4",
+        "rfc3986-validator": "0.1.1",
+        "rfc3987-syntax": "1.1.0",
+        "rich": "15.0.0",
+        "rpds-py": "2026.9.1",
+        "ruff": "0.17.0",
+        "sb3_contrib": "2.9.0",
+        "schedule": "1.2.2",
+        "scikit-learn": "1.9.1",
+        "scipy": "1.18.1",
+        "scipy-stubs": "1.18.1.1",
+        "sdnotify": "0.3.2",
+        "setuptools": "84.0.0",
+        "six": "1.17.0",
+        "sortedcontainers": "2.4.0",
+        "soupsieve": "3.0.1",
+        "stable_baselines3": "2.9.0",
+        "stack-data": "0.6.3",
+        "starlette": "1.7.0",
+        "sympy": "1.14.0",
+        "tabulate": "0.10.0",
+        "technical": "1.7.0",
+        "tensorboard": "2.21.0",
+        "tensorboard-data-server": "0.7.2",
+        "terminado": "0.18.1",
+        "threadpoolctl": "3.7.0",
+        "time-machine": "3.5.1",
+        "tinycss2": "1.5.1",
+        "tomli": "2.5.0",
+        "tomli_w": "1.2.0",
+        "torch": "2.14.1",
+        "tornado": "6.5.10",
+        "tqdm": "4.70.1",
+        "traitlets": "5.16.1",
+        "truststore": "0.10.4",
+        "types-cachetools": "7.0.0.20260713",
+        "types-filelock": "3.2.7",
+        "types-python-dateutil": "2.9.0.20260807",
+        "types-requests": "2.33.0.20261006",
+        "types-tabulate": "0.10.0.20261006",
+        "typing-inspection": "0.4.4",
+        "typing_extensions": "4.16.0",
+        "tzdata": "2026.5",
+        "uri-template": "1.3.0",
+        "urllib3": "2.8.0",
+        "uvicorn": "0.54.0",
+        "uvloop": "0.22.1",
+        "virtualenv": "21.14.6",
+        "wcwidth": "0.9.2",
+        "webcolors": "25.10.0",
+        "webencodings": "0.6.1",
+        "websocket-client": "1.9.2",
+        "websockets": "17.2",
+        "widgetsnbextension": "4.0.16",
+        "xgboost": "3.4.1",
+        "yarl": "1.25.1",
+        "zlib-ng": "1.0.0"
+      },
+      "python": "3.14.8 (main, Oct  9 2026, 15:11:09) [Clang 22.1.3 ]"
+    },
+    "validation_updated": "2026-10-12T01:32:46.361256+08:00",
+    "python_decision": "The complete optional dependency environment includes Torch, which has no Python 3.15 wheel. Python 3.14.8 is selected.",
+    "outcome_notes": "Full existing tests pass, including the existing security audit. LightGBM uses eval_X/eval_y with encoded labels, XGBoost forests use parallel trees in one boosting round, and test-owned loops/files/sessions are closed. multidict is constrained to the fixed release >=6.9.1 for CVE-2026-104874. No new test cases, skips or warning filters were added.",
+    "selected_test": {
       "command": [
         ".venv/bin/python",
         "-m",
@@ -353,375 +967,65 @@
       "label": "final-clean-tests",
       "exit_code": 0,
       "seconds": 239.04,
-      "log": "freqtrade-final-clean-tests.log"
+      "log": "<workspace>/docs/maintenance-2026-10-12/freqtrade-final-clean-tests.log"
     },
-    {
-      "command": [
-        "uv",
-        "lock",
-        "--upgrade"
-      ],
-      "label": "final-lock-2",
-      "exit_code": 0,
-      "seconds": 1.75,
-      "log": "freqtrade-final-lock-2.log"
+    "test_summary": "4612 passed, 35 skipped, 363 deselected in 231.36s (0:03:51)",
+    "status": "passed",
+    "final_checks": {
+      "lock": {
+        "command": [
+          "uv",
+          "lock",
+          "--upgrade"
+        ],
+        "label": "final-lock-2",
+        "exit_code": 0,
+        "seconds": 1.75,
+        "log": "<workspace>/docs/maintenance-2026-10-12/freqtrade-final-lock-2.log"
+      },
+      "sync": {
+        "command": [
+          "uv",
+          "sync",
+          "--all-extras",
+          "--frozen",
+          "--python",
+          "3.14.8"
+        ],
+        "label": "final-sync-2",
+        "exit_code": 0,
+        "seconds": 0.07,
+        "log": "<workspace>/docs/maintenance-2026-10-12/freqtrade-final-sync-2.log"
+      },
+      "build": {
+        "command": [
+          "uv",
+          "build",
+          "--python",
+          "3.14.8"
+        ],
+        "label": "final-build-2",
+        "exit_code": 0,
+        "seconds": 1.64,
+        "log": "<workspace>/docs/maintenance-2026-10-12/freqtrade-final-build-2.log"
+      },
+      "compile": {
+        "command": [
+          ".venv/bin/python",
+          "-m",
+          "compileall",
+          "-q",
+          "src"
+        ],
+        "label": "final-compile-2",
+        "exit_code": 0,
+        "seconds": 0.13,
+        "log": "<workspace>/docs/maintenance-2026-10-12/freqtrade-final-compile-2.log"
+      }
     },
-    {
-      "command": [
-        "uv",
-        "sync",
-        "--all-extras",
-        "--frozen",
-        "--python",
-        "3.14.8"
-      ],
-      "label": "final-sync-2",
-      "exit_code": 0,
-      "seconds": 0.07,
-      "log": "freqtrade-final-sync-2.log"
-    },
-    {
-      "command": [
-        "uv",
-        "build",
-        "--python",
-        "3.14.8"
-      ],
-      "label": "final-build-2",
-      "exit_code": 0,
-      "seconds": 1.64,
-      "log": "freqtrade-final-build-2.log"
-    },
-    {
-      "command": [
-        ".venv/bin/python",
-        "-m",
-        "compileall",
-        "-q",
-        "src"
-      ],
-      "label": "final-compile-2",
-      "exit_code": 0,
-      "seconds": 0.13,
-      "log": "freqtrade-final-compile-2.log"
-    }
-  ],
-  "started": "2026-10-12T00:14:01+0800",
-  "python": "3.14.8",
-  "head": "d5e06dbc1f818b248b1aead63b3b48c476aa8447",
-  "branch": "feature/ayu_develop",
-  "runtime_inventory": {
-    "executable": "/Users/alex/workspaces/trading/freqtrade/.venv/bin/python",
-    "packages": {
-      "Bottleneck": "1.6.0",
-      "CacheControl": "0.14.4",
-      "Farama-Notifications": "0.0.6",
-      "Jinja2": "3.1.6",
-      "Mako": "1.4.3",
-      "Markdown": "3.11",
-      "MarkupSafe": "3.0.4",
-      "PyJWT": "2.15.1",
-      "PyYAML": "6.0.3",
-      "Pygments": "2.21.0",
-      "SQLAlchemy": "2.1.4",
-      "Send2Trash": "2.1.0",
-      "TA-Lib": "0.8.1",
-      "Werkzeug": "3.1.9",
-      "absl-py": "2.5.1",
-      "aiofiles": "25.1.0",
-      "aiohappyeyeballs": "2.7.1",
-      "aiohttp": "3.14.5",
-      "aiohttp-fast-zlib": "0.3.0",
-      "aiosignal": "1.4.0",
-      "alembic": "1.20.0",
-      "annotated-doc": "0.0.5",
-      "annotated-types": "0.8.0",
-      "anyio": "4.15.1",
-      "appnope": "1.0.0",
-      "argon2-cffi": "25.1.0",
-      "argon2-cffi-bindings": "26.1.0",
-      "arrow": "1.4.0",
-      "ast-comments": "1.3.0",
-      "ast_serialize": "0.12.1",
-      "asttokens": "3.0.2",
-      "async-lru": "2.3.0",
-      "attrs": "26.1.0",
-      "babel": "2.18.0",
-      "beautifulsoup4": "4.15.0",
-      "bleach": "6.4.0",
-      "boolean.py": "5.0",
-      "build": "1.6.1",
-      "cachetools": "7.2.1",
-      "ccxt": "4.5.85",
-      "certifi": "2026.6.17",
-      "cffi": "2.0.0",
-      "cfgv": "3.5.0",
-      "charset-normalizer": "3.4.7",
-      "click": "8.5.0",
-      "cloudpickle": "3.1.2",
-      "cmaes": "0.13.1",
-      "colorlog": "6.12.0",
-      "comm": "0.2.3",
-      "coverage": "7.16.2",
-      "cryptography": "50.0.2",
-      "cyclonedx-python-lib": "11.12.0",
-      "datasieve": "0.1.9",
-      "debugpy": "1.8.22",
-      "defusedxml": "0.7.1",
-      "distlib": "0.4.3",
-      "execnet": "2.1.2",
-      "executing": "2.3.0",
-      "fastapi": "0.143.0",
-      "fastjsonschema": "2.22.2",
-      "filelock": "4.1.1",
-      "fqdn": "1.6.0",
-      "freqtrade": "2026.10.dev0",
-      "freqtrade-client": "2026.9",
-      "frozenlist": "1.8.0",
-      "fsspec": "2026.9.0",
-      "ft-pandas-ta": "0.3.16",
-      "grpcio": "1.84.0",
-      "gymnasium": "1.4.0",
-      "h11": "0.16.0",
-      "httpcore": "1.0.9",
-      "httpcore2": "2.13.1",
-      "httpx": "0.28.1",
-      "httpx2": "2.13.1",
-      "humanize": "4.16.0",
-      "identify": "2.6.20",
-      "idna": "3.18",
-      "iniconfig": "2.3.1",
-      "ipykernel": "7.4.0",
-      "ipython": "9.17.1",
-      "ipython_pygments_lexers": "1.1.1",
-      "ipywidgets": "8.1.9",
-      "isoduration": "20.11.0",
-      "janus": "2.0.0",
-      "jedi": "0.20.0",
-      "joblib": "1.6.0",
-      "json5": "0.17.3",
-      "jsonpointer": "3.2.1",
-      "jsonschema": "4.26.0",
-      "jsonschema-specifications": "2025.9.1",
-      "jupyter": "1.1.1",
-      "jupyter-console": "6.6.3",
-      "jupyter-events": "0.12.1",
-      "jupyter-lsp": "2.3.1",
-      "jupyter_builder": "1.2.3",
-      "jupyter_client": "8.10.0",
-      "jupyter_core": "5.9.1",
-      "jupyter_server": "2.21.1",
-      "jupyter_server_terminals": "0.5.4",
-      "jupyterlab": "4.6.4",
-      "jupyterlab_pygments": "0.3.0",
-      "jupyterlab_server": "2.28.1",
-      "jupyterlab_widgets": "3.0.17",
-      "lark": "1.3.1",
-      "librt": "0.16.0",
-      "license-expression": "30.4.4",
-      "lightgbm": "4.7.0",
-      "markdown-it-py": "4.2.0",
-      "matplotlib-inline": "0.2.2",
-      "mdurl": "0.1.2",
-      "mistune": "3.3.4",
-      "mpmath": "1.3.0",
-      "msgpack": "1.2.3",
-      "multidict": "7.1.0",
-      "mypy": "2.4.0",
-      "mypy_extensions": "1.1.0",
-      "narwhals": "2.27.1",
-      "nbclient": "0.11.0",
-      "nbconvert": "7.17.1",
-      "nbformat": "5.11.1",
-      "nbstripout": "0.9.1",
-      "nest-asyncio2": "1.7.4",
-      "networkx": "3.7",
-      "nodeenv": "1.11.0",
-      "notebook": "7.6.3",
-      "notebook_shim": "0.2.4",
-      "numexpr": "2.14.2",
-      "numpy": "2.5.4",
-      "numpy-typing-compat": "20260602.2.5",
-      "opentelemetry-api": "1.45.1",
-      "optuna": "5.0.0",
-      "optype": "0.19.0",
-      "orjson": "3.11.9",
-      "packageurl-python": "0.17.6",
-      "packaging": "26.3",
-      "pandas": "3.0.6",
-      "pandocfilters": "1.5.1",
-      "parso": "0.8.7",
-      "pathspec": "1.1.1",
-      "pexpect": "4.9.0",
-      "pillow": "12.3.0",
-      "pip": "26.2.1",
-      "pip-requirements-parser": "32.0.1",
-      "pip_api": "0.0.35",
-      "pip_audit": "2.10.1",
-      "platformdirs": "4.13.0",
-      "plotly": "7.1.0",
-      "pluggy": "1.6.0",
-      "pre_commit": "4.6.2",
-      "prometheus_client": "0.26.0",
-      "prompt_toolkit": "3.0.53",
-      "propcache": "0.5.2",
-      "protobuf": "7.36.2",
-      "psutil": "7.2.2",
-      "ptyprocess": "0.7.0",
-      "pure_eval": "0.2.4",
-      "py-serializable": "2.1.0",
-      "pyarrow": "26.0.0",
-      "pycoingecko": "3.2.0",
-      "pycparser": "3.0",
-      "pydantic": "2.14.0",
-      "pydantic_core": "2.50.0",
-      "pyparsing": "3.3.3",
-      "pyproject_hooks": "1.3.3",
-      "pytest": "9.1.1",
-      "pytest-asyncio": "1.4.0",
-      "pytest-cov": "7.1.0",
-      "pytest-mock": "3.16.0",
-      "pytest-random-order": "1.2.0",
-      "pytest-timeout": "2.4.0",
-      "pytest-xdist": "3.8.0",
-      "python-dateutil": "2.9.0.post0",
-      "python-discovery": "1.6.2",
-      "python-json-logger": "4.2.0",
-      "python-rapidjson": "1.25",
-      "python-telegram-bot": "22.8",
-      "pytz": "2026.5",
-      "pyzmq": "27.2.0",
-      "questionary": "2.1.1",
-      "referencing": "0.37.0",
-      "requests": "2.34.2",
-      "rfc3339-validator": "0.1.4",
-      "rfc3986-validator": "0.1.1",
-      "rfc3987-syntax": "1.1.0",
-      "rich": "15.0.0",
-      "rpds-py": "2026.9.1",
-      "ruff": "0.17.0",
-      "sb3_contrib": "2.9.0",
-      "schedule": "1.2.2",
-      "scikit-learn": "1.9.1",
-      "scipy": "1.18.1",
-      "scipy-stubs": "1.18.1.1",
-      "sdnotify": "0.3.2",
-      "setuptools": "84.0.0",
-      "six": "1.17.0",
-      "sortedcontainers": "2.4.0",
-      "soupsieve": "3.0.1",
-      "stable_baselines3": "2.9.0",
-      "stack-data": "0.6.3",
-      "starlette": "1.7.0",
-      "sympy": "1.14.0",
-      "tabulate": "0.10.0",
-      "technical": "1.7.0",
-      "tensorboard": "2.21.0",
-      "tensorboard-data-server": "0.7.2",
-      "terminado": "0.18.1",
-      "threadpoolctl": "3.7.0",
-      "time-machine": "3.5.1",
-      "tinycss2": "1.5.1",
-      "tomli": "2.5.0",
-      "tomli_w": "1.2.0",
-      "torch": "2.14.1",
-      "tornado": "6.5.10",
-      "tqdm": "4.70.1",
-      "traitlets": "5.16.1",
-      "truststore": "0.10.4",
-      "types-cachetools": "7.0.0.20260713",
-      "types-filelock": "3.2.7",
-      "types-python-dateutil": "2.9.0.20260807",
-      "types-requests": "2.33.0.20261006",
-      "types-tabulate": "0.10.0.20261006",
-      "typing-inspection": "0.4.4",
-      "typing_extensions": "4.16.0",
-      "tzdata": "2026.5",
-      "uri-template": "1.3.0",
-      "urllib3": "2.8.0",
-      "uvicorn": "0.54.0",
-      "uvloop": "0.22.1",
-      "virtualenv": "21.14.6",
-      "wcwidth": "0.9.2",
-      "webcolors": "25.10.0",
-      "webencodings": "0.6.1",
-      "websocket-client": "1.9.2",
-      "websockets": "17.2",
-      "widgetsnbextension": "4.0.16",
-      "xgboost": "3.4.1",
-      "yarl": "1.25.1",
-      "zlib-ng": "1.0.0"
-    },
-    "python": "3.14.8 (main, Oct  9 2026, 15:11:09) [Clang 22.1.3 ]"
+    "default_merged": true,
+    "upstream_default": "upstream/develop",
+    "maintenance_commit": "a30f8952261b7a1844ac5c4f0d2fd30a7c6b8f65"
   },
-  "validation_updated": "2026-10-12T01:32:46.361256+08:00",
-  "python_decision": "The complete optional dependency environment includes Torch, which has no Python 3.15 wheel. Python 3.14.8 is selected.",
-  "outcome_notes": "Full existing tests pass, including the existing security audit. LightGBM uses eval_X/eval_y with encoded labels, XGBoost forests use parallel trees in one boosting round, and test-owned loops/files/sessions are closed. multidict is constrained to the fixed release >=6.9.1 for CVE-2026-104874. No new test cases, skips or warning filters were added.",
-  "selected_test": {
-    "command": [
-      ".venv/bin/python",
-      "-m",
-      "pytest"
-    ],
-    "label": "final-clean-tests",
-    "exit_code": 0,
-    "seconds": 239.04,
-    "log": "freqtrade-final-clean-tests.log"
-  },
-  "test_summary": "4612 passed, 35 skipped, 363 deselected in 231.36s (0:03:51)",
-  "status": "passed",
-  "final_checks": {
-    "lock": {
-      "command": [
-        "uv",
-        "lock",
-        "--upgrade"
-      ],
-      "label": "final-lock-2",
-      "exit_code": 0,
-      "seconds": 1.75,
-      "log": "freqtrade-final-lock-2.log"
-    },
-    "sync": {
-      "command": [
-        "uv",
-        "sync",
-        "--all-extras",
-        "--frozen",
-        "--python",
-        "3.14.8"
-      ],
-      "label": "final-sync-2",
-      "exit_code": 0,
-      "seconds": 0.07,
-      "log": "freqtrade-final-sync-2.log"
-    },
-    "build": {
-      "command": [
-        "uv",
-        "build",
-        "--python",
-        "3.14.8"
-      ],
-      "label": "final-build-2",
-      "exit_code": 0,
-      "seconds": 1.64,
-      "log": "freqtrade-final-build-2.log"
-    },
-    "compile": {
-      "command": [
-        ".venv/bin/python",
-        "-m",
-        "compileall",
-        "-q",
-        "src"
-      ],
-      "label": "final-compile-2",
-      "exit_code": 0,
-      "seconds": 0.13,
-      "log": "freqtrade-final-compile-2.log"
-    }
-  },
-  "default_merged": true,
-  "upstream_default": "upstream/develop"
+  "note": "Full raw logs are retained in the workspace maintenance evidence, not distributed here. Hashes identify those original logs. A successful build or selected test subset does not imply a full test-suite pass. Commands containing <workspace> describe the original execution environment."
 }

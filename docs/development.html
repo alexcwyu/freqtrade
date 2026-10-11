@@ -1,0 +1,916 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Freqtrade Development Guide</title><style>
+:root{color-scheme:light dark;--bg:#f6f8fa;--paper:#fff;--fg:#182332;--muted:#526274;--line:#d9e0e7;--accent:#1769aa}
+@media(prefers-color-scheme:dark){:root{--bg:#111820;--paper:#192330;--fg:#e6edf3;--muted:#a0b3c5;--line:#344354;--accent:#71b7ee}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.7 system-ui,-apple-system,sans-serif}
+header{border-bottom:1px solid var(--line);padding:16px max(24px,calc((100vw - 1120px)/2));background:var(--paper);font-size:14px}
+main{max-width:1120px;margin:32px auto;padding:40px 48px;background:var(--paper);border:1px solid var(--line);border-radius:12px}
+h1,h2,h3,h4{line-height:1.3;scroll-margin-top:24px}h1{font-size:2.1rem}h2{margin-top:2.5em;border-bottom:1px solid var(--line);padding-bottom:.35em}h3{margin-top:1.8em}
+a{color:var(--accent);text-underline-offset:3px}code{font:14px/1.6 ui-monospace,SFMono-Regular,Menlo,monospace;background:var(--bg);border-radius:4px;padding:2px 5px}pre{overflow:auto;border:1px solid var(--line);background:var(--bg);padding:16px;border-radius:7px}pre code{padding:0;background:none}
+table{border-collapse:collapse;width:100%;display:block;overflow-x:auto;font-size:14px}th,td{border:1px solid var(--line);padding:9px 12px;text-align:left}th{background:var(--bg)}blockquote{border-left:4px solid var(--accent);margin:16px 0;padding:4px 20px;color:var(--muted)}
+.diagram{overflow-x:auto;margin:24px 0;padding:20px;border:1px solid var(--line);border-radius:8px;background:#fff;color:#182332}.mermaid{border:0;background:none;text-align:center}.mermaid svg{height:auto;max-width:100%}details{font-size:13px;color:#526274}.headerlink{margin-left:.4em;font-size:.7em;text-decoration:none;color:var(--muted)}
+main{min-width:0;overflow-wrap:anywhere}table,pre{max-width:100%}.diagram svg{display:block}
+th,td{min-width:120px;overflow-wrap:normal}
+@media(max-width:740px){main{margin:0;padding:24px 18px;border:0;border-radius:0}h1{font-size:1.7rem}.diagram{padding:8px}}
+@media print{header,details,.headerlink{display:none}body,main{background:#fff;color:#000;border:0;margin:0;padding:0}a{color:#000}.diagram,pre{break-inside:avoid}}
+</style></head><body><header>Engineering documentation · <a href="development.md">Markdown source</a></header><main><h1 id="freqtrade-development-guide">Freqtrade Development Guide<a class="headerlink" href="#freqtrade-development-guide" title="Permanent link">¶</a></h1>
+<h2 id="development-setup">Development Setup<a class="headerlink" href="#development-setup" title="Permanent link">¶</a></h2>
+<h3 id="prerequisites">Prerequisites<a class="headerlink" href="#prerequisites" title="Permanent link">¶</a></h3>
+<ul>
+<li>Python &gt;= 3.13</li>
+<li>TA-Lib system library (required for technical indicators)</li>
+<li>Git</li>
+</ul>
+<h3 id="installation">Installation<a class="headerlink" href="#installation" title="Permanent link">¶</a></h3>
+<pre><code class="language-bash"># Clone the repository
+git clone https://github.com/freqtrade/freqtrade.git
+cd freqtrade
+
+# Automated setup (recommended)
+./setup.sh
+
+# Manual setup with pip
+pip install -e .
+
+# Development setup with all dependencies
+pip install -e .[dev]
+
+# Install specific feature sets
+pip install -e .[plot]          # Plotting capabilities
+pip install -e .[hyperopt]      # Hyperparameter optimization
+pip install -e .[freqai]        # Machine learning features
+pip install -e .[freqai_rl]     # Reinforcement learning
+</code></pre>
+<h3 id="pre-commit-hooks">Pre-commit Hooks<a class="headerlink" href="#pre-commit-hooks" title="Permanent link">¶</a></h3>
+<pre><code class="language-bash"># Install pre-commit hooks (recommended for development)
+pre-commit install
+
+# Run all hooks manually
+pre-commit run -a
+</code></pre>
+<h3 id="code-quality-tools">Code Quality Tools<a class="headerlink" href="#code-quality-tools" title="Permanent link">¶</a></h3>
+<pre><code class="language-bash"># Linting and formatting (ruff)
+ruff check .
+ruff format .
+
+# Type checking
+mypy freqtrade
+
+# Run tests
+pytest
+pytest -n auto          # Parallel execution
+pytest --cov=freqtrade  # With coverage
+</code></pre>
+<h2 id="project-structure">Project Structure<a class="headerlink" href="#project-structure" title="Permanent link">¶</a></h2>
+<pre><code>freqtrade/
+  src/freqtrade/                    # Main package
+    __init__.py                     # Version (2026.4-dev)
+    __main__.py                     # Entry point for `python -m freqtrade`
+    main.py                         # CLI entry: argument parsing, command dispatch
+    worker.py                       # Bot lifecycle manager, throttled main loop
+    freqtradebot.py                 # Core orchestrator (~3000 lines)
+    wallets.py                      # Balance and position tracking
+    constants.py                    # Global constants, type aliases
+    exceptions.py                   # Custom exception hierarchy
+    misc.py                         # Utility functions
+
+    commands/                       # CLI command implementations
+      arguments.py                  # Argument parser setup
+      cli_options.py                # CLI option definitions
+      trade_commands.py             # `freqtrade trade` command
+      optimize_commands.py          # Backtesting and hyperopt commands
+      data_commands.py              # Data download commands
+      deploy_commands.py            # Strategy and config deployment
+      deploy_ui.py                  # FreqUI installation
+      list_commands.py              # List strategies, exchanges, etc.
+      plot_commands.py              # Plotting commands
+      analyze_commands.py           # Backtest analysis commands
+      pairlist_commands.py          # Pairlist testing commands
+      db_commands.py                # Database management
+      webserver_commands.py         # Webserver start command
+      hyperopt_commands.py          # Hyperopt result commands
+      strategy_utils_commands.py    # Strategy utility commands
+
+    configuration/                  # Config loading and validation
+      config_schema/                # JSON Schema for config validation
+
+    strategy/                       # Strategy framework
+      interface.py                  # IStrategy abstract base class
+      parameters.py                 # Hyperoptable parameter classes
+      hyper.py                      # HyperStrategyMixin for parameter loading
+      informative_decorator.py      # @informative decorator for multi-timeframe
+      strategy_wrapper.py           # Safe wrapper for strategy method calls
+      strategy_helper.py            # Helper functions (merge informative, stoploss calc)
+      strategy_validation.py        # DataFrame validation after strategy analysis
+      strategyupdater.py            # Strategy migration tool
+
+    exchange/                       # Exchange abstraction layer
+      exchange.py                   # Base Exchange class (~2500 lines)
+      exchange_ws.py                # WebSocket support
+      exchange_types.py             # Type definitions (CcxtOrder, Ticker, etc.)
+      exchange_utils.py             # Price/amount precision utilities
+      common.py                     # Retry decorators, rate limiting
+      binance.py                    # Binance-specific adapter
+      kraken.py                     # Kraken adapter
+      okx.py                        # OKX adapter
+      bybit.py                      # Bybit adapter
+      gate.py                       # Gate.io adapter
+      kucoin.py                     # Kucoin adapter
+      bitget.py                     # Bitget adapter
+      ... (20+ exchange adapters)
+
+    data/                           # Data management
+      dataprovider.py               # Unified data access for bot and strategies
+      history/                      # Historical data loading and storage
+      converter/                    # Data format conversion (OHLCV, trades)
+      btanalysis/                   # Backtesting result analysis
+      metrics.py                    # Performance metrics (Sharpe, Sortino, etc.)
+
+    persistence/                    # Database layer
+      base.py                       # SQLAlchemy base model
+      trade_model.py                # Trade and Order models
+      pairlock.py                   # PairLock model
+      pairlock_middleware.py        # PairLocks abstraction (DB + in-memory)
+      custom_data.py                # Key-value storage per trade
+      key_value_store.py            # Global key-value storage
+      models.py                     # Model registry and convenience imports
+      migrations.py                 # Database migration logic
+
+    plugins/                        # Plugin system
+      pairlist/                     # Pairlist handlers
+        IPairList.py                # Abstract base class
+        StaticPairList.py           # Fixed pair list
+        VolumePairList.py           # Volume-based pair selection
+        ... (20+ handlers)
+      pairlistmanager.py            # Pairlist handler chain manager
+      protections/                  # Protection plugins
+        iprotection.py              # Abstract base class
+        cooldown_period.py          # Post-trade cooldown
+        stoploss_guard.py           # Stoploss event protection
+        max_drawdown_protection.py  # Max drawdown circuit breaker
+        low_profit_pairs.py         # Low-profit pair locking
+      protectionmanager.py          # Protection handler manager
+
+    rpc/                            # Remote control interfaces
+      rpc.py                        # Core RPC business logic
+      rpc_manager.py                # Handler registration and message dispatch
+      rpc_types.py                  # Message type definitions
+      telegram.py                   # Telegram bot integration
+      webhook.py                    # Webhook notifications
+      discord.py                    # Discord integration
+      api_server/                   # FastAPI REST API + WebSocket
+        webserver.py                # Server setup and configuration
+        api_v1.py                   # API route definitions
+        api_auth.py                 # JWT authentication
+        api_ws.py                   # WebSocket endpoint
+        api_schemas.py              # Pydantic request/response models
+        api_trading.py              # Trading endpoints (force buy/sell)
+        api_backtest.py             # Backtesting endpoints
+        api_pair_history.py         # Pair data endpoints
+        deps.py                     # FastAPI dependencies
+      external_message_consumer.py  # Consume data from other Freqtrade instances
+
+    optimize/                       # Optimization framework
+      backtesting.py                # Backtesting engine
+      backtest_caching.py           # Backtest result caching
+      bt_progress.py                # Progress tracking
+      optimize_reports/             # Report generation (text, JSON)
+      hyperopt/                     # Hyperparameter optimization
+        hyperopt.py                 # Main hyperopt class
+        hyperopt_optimizer.py       # Optuna integration
+        hyperopt_interface.py       # Hyperopt interface
+        hyperopt_auto.py            # Auto-hyperopt logic
+        hyperopt_output.py          # Result formatting
+      hyperopt_loss/                # Loss function implementations
+      hyperopt_tools.py             # Shared hyperopt utilities
+      space/                        # Search space definitions
+      analysis/                     # Trade analysis tools
+
+    freqai/                         # Machine learning integration
+      freqai_interface.py           # Base FreqAI model interface
+      data_kitchen.py               # Data preprocessing pipeline
+      data_drawer.py                # Model persistence and metadata
+      base_models/                  # Base model implementations
+      prediction_models/            # Pre-built ML models
+      RL/                           # Reinforcement learning
+      torch/                        # PyTorch-specific utilities
+      tensorboard/                  # TensorBoard integration
+      utils.py                      # FreqAI utility functions
+
+    resolvers/                      # Dynamic component loading
+    enums/                          # Type-safe enumerations
+    ft_types/                       # Type definitions
+    leverage/                       # Leverage and liquidation calculations
+    loggers/                        # Logging configuration
+    mixins/                         # Shared mixin classes (LoggingMixin)
+    plot/                           # Plotting utilities
+    templates/                      # Strategy and config templates
+    util/                           # Utility functions and helpers
+    vendor/                         # Vendored dependencies
+    system/                         # System-level setup (asyncio, GC, multiprocessing)
+
+  tests/                            # Test suite (mirrors src/ structure)
+    conftest.py                     # Shared fixtures
+    conftest_trades.py              # Trade-related fixtures
+    freqtradebot/                   # FreqtradeBot tests
+    strategy/                       # Strategy tests
+    exchange/                       # Exchange tests
+    optimize/                       # Backtesting/hyperopt tests
+    persistence/                    # Database tests
+    rpc/                            # RPC tests
+    plugins/                        # Plugin tests
+    data/                           # Data handler tests
+    freqai/                         # FreqAI tests
+</code></pre>
+<h2 id="code-standards-and-conventions">Code Standards and Conventions<a class="headerlink" href="#code-standards-and-conventions" title="Permanent link">¶</a></h2>
+<h3 id="style-rules">Style Rules<a class="headerlink" href="#style-rules" title="Permanent link">¶</a></h3>
+<ul>
+<li><strong>Line length</strong>: 100 characters (enforced by ruff)</li>
+<li><strong>Import ordering</strong>: Managed by isort (2 blank lines after imports)</li>
+<li><strong>Type hints</strong>: Required for all public methods (enforced by mypy)</li>
+<li><strong>Docstrings</strong>: Required for public methods, use reST format (<code>:param:</code>, <code>:return:</code>, <code>:raises:</code>)</li>
+</ul>
+<h3 id="naming-conventions">Naming Conventions<a class="headerlink" href="#naming-conventions" title="Permanent link">¶</a></h3>
+<ul>
+<li>Classes: <code>PascalCase</code> (e.g., <code>FreqtradeBot</code>, <code>IStrategy</code>)</li>
+<li>Functions/methods: <code>snake_case</code> (e.g., <code>execute_entry</code>, <code>get_trade_stake_amount</code>)</li>
+<li>Constants: <code>UPPER_SNAKE_CASE</code> (e.g., <code>PROCESS_THROTTLE_SECS</code>, <code>DEFAULT_DB_PROD_URL</code>)</li>
+<li>Private methods: <code>_leading_underscore</code> (e.g., <code>_refresh_active_whitelist</code>)</li>
+<li>Internal/protected: <code>__double_underscore</code> for name-mangled attributes</li>
+</ul>
+<h3 id="common-patterns">Common Patterns<a class="headerlink" href="#common-patterns" title="Permanent link">¶</a></h3>
+<ul>
+<li><strong>Strategy-safe wrapper</strong>: All strategy callback invocations are wrapped in <code>strategy_safe_wrapper()</code> to catch and log exceptions without crashing the bot.</li>
+<li><strong>Exit lock</strong>: The <code>_exit_lock</code> (threading.Lock) protects exit logic from concurrent access by the main loop and RPC commands (e.g., force sell from Telegram).</li>
+<li><strong>Periodic cache</strong>: <code>PeriodicCache</code> provides TTL-based caching with candle-aligned expiration.</li>
+<li><strong>LoggingMixin</strong>: Provides <code>log_once()</code> to avoid spamming repeated messages.</li>
+</ul>
+<h3 id="error-handling-hierarchy">Error Handling Hierarchy<a class="headerlink" href="#error-handling-hierarchy" title="Permanent link">¶</a></h3>
+<pre><code>FreqtradeException
+  OperationalException        # Unrecoverable config/setup errors
+  ConfigurationError          # Configuration validation failures
+  DependencyException         # Runtime dependency issues
+    InsufficientFundsError    # Not enough balance
+    InvalidOrderException     # Order placement failures
+  ExchangeError               # Exchange communication failures
+    DDosProtection            # Rate limiting / DDoS protection
+    RetryableOrderError       # Transient order errors
+    TemporaryError            # Temporary exchange issues
+  PricingError                # Price calculation failures
+  StrategyError               # Strategy logic errors
+</code></pre>
+<h2 id="strategy-development-guide">Strategy Development Guide<a class="headerlink" href="#strategy-development-guide" title="Permanent link">¶</a></h2>
+<h3 id="minimal-strategy">Minimal Strategy<a class="headerlink" href="#minimal-strategy" title="Permanent link">¶</a></h3>
+<pre><code class="language-python">from pandas import DataFrame
+from freqtrade.strategy import IStrategy, IntParameter
+import talib.abstract as ta
+
+
+class MyStrategy(IStrategy):
+    INTERFACE_VERSION = 3
+
+    # Required attributes
+    timeframe = "5m"
+    minimal_roi = {"60": 0.01, "30": 0.02, "0": 0.04}
+    stoploss = -0.10
+
+    # Optional
+    can_short = False
+    trailing_stop = False
+    startup_candle_count = 200
+    process_only_new_candles = True
+    use_exit_signal = True
+
+    # Hyperoptable parameters
+    buy_rsi = IntParameter(low=10, high=40, default=30, space="buy")
+    sell_rsi = IntParameter(low=60, high=90, default=70, space="sell")
+
+    def populate_indicators(self, dataframe: DataFrame, metadata: dict) -&gt; DataFrame:
+        dataframe["rsi"] = ta.RSI(dataframe, timeperiod=14)
+        dataframe["ema_50"] = ta.EMA(dataframe, timeperiod=50)
+        dataframe["ema_200"] = ta.EMA(dataframe, timeperiod=200)
+        return dataframe
+
+    def populate_entry_trend(self, dataframe: DataFrame, metadata: dict) -&gt; DataFrame:
+        dataframe.loc[
+            (dataframe["rsi"] &lt; self.buy_rsi.value) &amp;
+            (dataframe["ema_50"] &gt; dataframe["ema_200"]) &amp;
+            (dataframe["volume"] &gt; 0),
+            "enter_long"
+        ] = 1
+        return dataframe
+
+    def populate_exit_trend(self, dataframe: DataFrame, metadata: dict) -&gt; DataFrame:
+        dataframe.loc[
+            (dataframe["rsi"] &gt; self.sell_rsi.value) &amp;
+            (dataframe["volume"] &gt; 0),
+            "exit_long"
+        ] = 1
+        return dataframe
+</code></pre>
+<h3 id="advanced-strategy-features">Advanced Strategy Features<a class="headerlink" href="#advanced-strategy-features" title="Permanent link">¶</a></h3>
+<h4 id="custom-stoploss">Custom Stoploss<a class="headerlink" href="#custom-stoploss" title="Permanent link">¶</a></h4>
+<pre><code class="language-python">def custom_stoploss(
+    self, pair: str, trade: Trade, current_time: datetime,
+    current_rate: float, current_profit: float, after_fill: bool,
+    **kwargs
+) -&gt; float | None:
+    # Return desired stoploss relative to current_rate
+    # Returning -0.05 means 5% below current_rate
+    if current_profit &gt; 0.10:
+        return -0.02  # Tight stop when in profit
+    return -0.10  # Default stoploss
+</code></pre>
+<h4 id="dca-position-adjustment">DCA (Position Adjustment)<a class="headerlink" href="#dca-position-adjustment" title="Permanent link">¶</a></h4>
+<pre><code class="language-python">position_adjustment_enable = True
+max_entry_position_adjustment = 3  # Maximum 3 additional entries
+
+def adjust_trade_position(
+    self, trade: Trade, current_time: datetime,
+    current_rate: float, current_profit: float,
+    min_stake: float | None, max_stake: float,
+    current_entry_rate: float, current_exit_rate: float,
+    current_entry_profit: float, current_exit_profit: float,
+    **kwargs
+) -&gt; float | None:
+    # Return positive value to increase position
+    # Return negative value to decrease position
+    # Return None to do nothing
+    if current_profit &lt; -0.05 and trade.nr_of_successful_entries &lt; 3:
+        return min_stake  # Buy more at a loss (DCA down)
+    return None
+</code></pre>
+<h4 id="custom-entryexit-price">Custom Entry/Exit Price<a class="headerlink" href="#custom-entryexit-price" title="Permanent link">¶</a></h4>
+<pre><code class="language-python">def custom_entry_price(
+    self, pair: str, trade: Trade | None, current_time: datetime,
+    proposed_rate: float, entry_tag: str | None, side: str,
+    **kwargs
+) -&gt; float:
+    # Return custom price for the entry order
+    dataframe, _ = self.dp.get_analyzed_dataframe(pair, self.timeframe)
+    last_candle = dataframe.iloc[-1]
+    return last_candle["close"]  # Enter at close price
+
+def custom_exit_price(
+    self, pair: str, trade: Trade, current_time: datetime,
+    proposed_rate: float, current_profit: float, exit_tag: str | None,
+    **kwargs
+) -&gt; float:
+    return proposed_rate  # Use default pricing
+</code></pre>
+<h4 id="informative-pairs-multi-timeframe">Informative Pairs (Multi-Timeframe)<a class="headerlink" href="#informative-pairs-multi-timeframe" title="Permanent link">¶</a></h4>
+<pre><code class="language-python">from freqtrade.strategy import informative
+
+# Using the @informative decorator
+@informative("1h")
+def populate_indicators_1h(self, dataframe: DataFrame, metadata: dict) -&gt; DataFrame:
+    dataframe["rsi_1h"] = ta.RSI(dataframe, timeperiod=14)
+    return dataframe
+
+# Or using gather_informative_pairs + merge
+def informative_pairs(self):
+    return [("BTC/USDT", "1h"), ("ETH/USDT", "1h")]
+</code></pre>
+<h4 id="leverage-futures">Leverage (Futures)<a class="headerlink" href="#leverage-futures" title="Permanent link">¶</a></h4>
+<pre><code class="language-python">can_short = True
+
+def leverage(
+    self, pair: str, current_time: datetime,
+    current_rate: float, proposed_leverage: float,
+    max_leverage: float, entry_tag: str | None, side: str,
+    **kwargs
+) -&gt; float:
+    return 3.0  # Use 3x leverage
+</code></pre>
+<h4 id="custom-exit-logic">Custom Exit Logic<a class="headerlink" href="#custom-exit-logic" title="Permanent link">¶</a></h4>
+<pre><code class="language-python">def custom_exit(
+    self, pair: str, trade: Trade, current_time: datetime,
+    current_rate: float, current_profit: float,
+    **kwargs
+) -&gt; str | bool | None:
+    # Return a string (exit reason) to exit
+    # Return True to exit with "custom_exit" reason
+    # Return None/False to not exit
+    if current_profit &gt; 0.20:
+        return "profit_target_reached"
+    return None
+</code></pre>
+<h3 id="strategy-callbacks-execution-order">Strategy Callbacks Execution Order<a class="headerlink" href="#strategy-callbacks-execution-order" title="Permanent link">¶</a></h3>
+<p>During each bot iteration, strategy methods are called in this order:</p>
+<ol>
+<li><code>bot_loop_start(current_time)</code> -- Once per iteration</li>
+<li><code>populate_indicators(dataframe, metadata)</code> -- For each pair (if new candle)</li>
+<li><code>populate_entry_trend(dataframe, metadata)</code> -- For each pair</li>
+<li><code>populate_exit_trend(dataframe, metadata)</code> -- For each pair</li>
+<li><strong>For open trades</strong>: <code>custom_stoploss()</code>, <code>should_exit()</code> which calls <code>custom_exit()</code></li>
+<li><strong>For DCA</strong>: <code>adjust_trade_position()</code></li>
+<li><strong>For new entries</strong>: <code>custom_entry_price()</code>, <code>custom_stake_amount()</code>, <code>leverage()</code>, <code>confirm_trade_entry()</code></li>
+<li><strong>For exits</strong>: <code>custom_exit_price()</code>, <code>confirm_trade_exit()</code></li>
+</ol>
+<h3 id="hyperoptable-parameters">Hyperoptable Parameters<a class="headerlink" href="#hyperoptable-parameters" title="Permanent link">¶</a></h3>
+<p>Define parameters that can be optimized:</p>
+<pre><code class="language-python">from freqtrade.strategy import (
+    IntParameter,
+    DecimalParameter,
+    RealParameter,
+    CategoricalParameter,
+    BooleanParameter,
+)
+
+class MyStrategy(IStrategy):
+    # Integer parameter
+    buy_rsi = IntParameter(low=10, high=50, default=30, space="buy", optimize=True)
+
+    # Decimal parameter (fixed precision)
+    stoploss_val = DecimalParameter(-0.15, -0.01, default=-0.10,
+                                    decimals=2, space="stoploss")
+
+    # Real parameter (float)
+    trailing_offset = RealParameter(0.0, 0.1, default=0.02, space="sell")
+
+    # Categorical parameter
+    exit_type = CategoricalParameter(["rsi", "macd", "both"],
+                                      default="rsi", space="sell")
+
+    # Boolean parameter
+    use_trailing = BooleanParameter(default=True, space="sell")
+</code></pre>
+<p>Parameters are automatically picked up by hyperopt. The <code>space</code> attribute determines which hyperopt space they belong to (<code>buy</code>/<code>sell</code>/<code>roi</code>/<code>stoploss</code>/custom).</p>
+<h2 id="testing-approach">Testing Approach<a class="headerlink" href="#testing-approach" title="Permanent link">¶</a></h2>
+<h3 id="running-tests">Running Tests<a class="headerlink" href="#running-tests" title="Permanent link">¶</a></h3>
+<pre><code class="language-bash"># All tests
+pytest
+
+# Specific module
+pytest tests/test_freqtradebot.py
+
+# Specific test
+pytest tests/test_freqtradebot.py::test_create_trade
+
+# With coverage
+pytest --cov=freqtrade --cov-report=html
+
+# Parallel execution
+pytest -n auto
+
+# Strategy-specific tests
+pytest tests/strategy/
+</code></pre>
+<h3 id="test-structure">Test Structure<a class="headerlink" href="#test-structure" title="Permanent link">¶</a></h3>
+<p>Tests mirror the <code>src/freqtrade/</code> package structure:</p>
+<pre><code>tests/
+  conftest.py               # Global fixtures (mock exchange, config, trades)
+  conftest_trades.py         # Trade-related fixtures
+  conftest_trades_usdt.py    # USDT trade fixtures
+  test_freqtradebot/         # FreqtradeBot unit tests
+  strategy/                  # Strategy interface tests
+  exchange/                  # Exchange adapter tests
+  optimize/                  # Backtesting and hyperopt tests
+  persistence/               # Database model tests
+  rpc/                       # RPC handler tests
+  plugins/                   # Pairlist and protection tests
+  data/                      # Data handler tests
+  freqai/                    # FreqAI tests
+</code></pre>
+<h3 id="writing-tests">Writing Tests<a class="headerlink" href="#writing-tests" title="Permanent link">¶</a></h3>
+<p>Key patterns used in the test suite:</p>
+<pre><code class="language-python">import pytest
+from unittest.mock import MagicMock, PropertyMock, patch
+from freqtrade.persistence import Trade
+
+def test_my_feature(default_conf, fee, mocker):
+    """
+    Test uses fixtures from conftest.py:
+    - default_conf: base configuration dict
+    - fee: mock fee structure
+    - mocker: pytest-mock fixture
+    """
+    # Mock exchange calls
+    mocker.patch("freqtrade.exchange.Exchange.fetch_ticker",
+                 return_value={"bid": 0.05, "ask": 0.06, "last": 0.055})
+
+    # Create bot instance with mocked dependencies
+    freqtrade = get_patched_freqtradebot(mocker, default_conf)
+
+    # Test behavior
+    result = freqtrade.create_trade("ETH/BTC")
+    assert result is True
+
+    # Verify database state
+    trades = Trade.get_open_trades()
+    assert len(trades) == 1
+    assert trades[0].pair == "ETH/BTC"
+</code></pre>
+<h3 id="test-fixtures">Test Fixtures<a class="headerlink" href="#test-fixtures" title="Permanent link">¶</a></h3>
+<p>The <code>conftest.py</code> provides essential fixtures:</p>
+<ul>
+<li><code>default_conf</code> -- Base configuration with all required fields</li>
+<li><code>fee</code> -- Standard fee structure (0.1% maker/taker)</li>
+<li><code>get_patched_freqtradebot()</code> -- Creates a bot with mocked exchange</li>
+<li><code>create_mock_trades()</code> -- Populates database with sample trades</li>
+</ul>
+<h2 id="custom-exchange-integration">Custom Exchange Integration<a class="headerlink" href="#custom-exchange-integration" title="Permanent link">¶</a></h2>
+<p>To add support for a new exchange:</p>
+<ol>
+<li><strong>Create adapter file</strong> in <code>src/freqtrade/exchange/</code>:</li>
+</ol>
+<pre><code class="language-python"># src/freqtrade/exchange/myexchange.py
+from freqtrade.exchange import Exchange
+
+
+class Myexchange(Exchange):
+    """Exchange-specific class for MyExchange"""
+
+    _ft_has: dict = {
+        # Override exchange capabilities
+        "stoploss_on_exchange": True,
+        "ohlcv_candle_limit": 1000,
+        "trades_has_history": True,
+    }
+
+    def fetch_stoploss_order(self, order_id, pair, params=None):
+        """Custom stoploss order handling if needed"""
+        return super().fetch_stoploss_order(order_id, pair, params)
+</code></pre>
+<ol start="2">
+<li>
+<p><strong>The resolver will automatically find it</strong> -- Freqtrade's <code>ExchangeResolver</code> looks for a class matching the exchange name in the <code>exchange/</code> directory.</p>
+</li>
+<li>
+<p><strong>Key overrides</strong> (<code>_ft_has</code> dict):
+   - <code>stoploss_on_exchange</code> -- Whether exchange supports native stoploss orders
+   - <code>ohlcv_candle_limit</code> -- Max candles per OHLCV request
+   - <code>trades_has_history</code> -- Whether historical trade data is available
+   - <code>l2_limit_range</code> / <code>l2_limit_range_default</code> -- Order book depth limits
+   - <code>ws_enabled</code> -- WebSocket support</p>
+</li>
+</ol>
+<h2 id="plugin-development">Plugin Development<a class="headerlink" href="#plugin-development" title="Permanent link">¶</a></h2>
+<h3 id="custom-pairlist-handler">Custom Pairlist Handler<a class="headerlink" href="#custom-pairlist-handler" title="Permanent link">¶</a></h3>
+<pre><code class="language-python"># src/freqtrade/plugins/pairlist/MyPairList.py
+from freqtrade.plugins.pairlist.IPairList import IPairList, PairlistParameter, SupportsBacktesting
+
+
+class MyPairList(IPairList):
+    is_pairlist_generator = False  # True if this generates pairs (vs. filters)
+    supports_backtesting = SupportsBacktesting.YES
+
+    def __init__(self, exchange, pairlistmanager, config, pairlistconfig, pairlist_pos):
+        super().__init__(exchange, pairlistmanager, config, pairlistconfig, pairlist_pos)
+        self._threshold = self._pairlistconfig.get("threshold", 0.5)
+
+    @property
+    def needstickers(self) -&gt; bool:
+        """Whether this handler needs ticker data"""
+        return True
+
+    def short_desc(self) -&gt; str:
+        return f"MyPairList - threshold: {self._threshold}"
+
+    @staticmethod
+    def description() -&gt; str:
+        return "Custom pairlist handler description"
+
+    @staticmethod
+    def available_parameters() -&gt; dict[str, PairlistParameter]:
+        return {
+            "threshold": {
+                "type": "number",
+                "default": 0.5,
+                "description": "Filter threshold",
+                "help": "Pairs below this threshold are removed",
+            }
+        }
+
+    def filter_pairlist(self, pairlist: list[str], tickers: dict) -&gt; list[str]:
+        """Filter the pairlist based on custom logic"""
+        return [p for p in pairlist if self._validate_pair(p, tickers)]
+
+    def _validate_pair(self, pair: str, tickers: dict) -&gt; bool:
+        """Validate a single pair"""
+        ticker = tickers.get(pair, {})
+        return ticker.get("quoteVolume", 0) &gt; self._threshold
+</code></pre>
+<p>Configuration:</p>
+<pre><code class="language-json">{
+    "pairlists": [
+        {"method": "StaticPairList"},
+        {"method": "MyPairList", "threshold": 100000}
+    ]
+}
+</code></pre>
+<h3 id="custom-protection-plugin">Custom Protection Plugin<a class="headerlink" href="#custom-protection-plugin" title="Permanent link">¶</a></h3>
+<pre><code class="language-python"># src/freqtrade/plugins/protections/my_protection.py
+from datetime import datetime
+from freqtrade.constants import Config, LongShort
+from freqtrade.plugins.protections.iprotection import IProtection, ProtectionReturn
+
+
+class MyProtection(IProtection):
+    has_global_stop = False   # Can halt all trading
+    has_local_stop = True     # Can lock individual pairs
+
+    def __init__(self, config: Config, protection_config: dict):
+        super().__init__(config, protection_config)
+        self._max_losses = self._protection_config.get("max_losses", 3)
+
+    @property
+    def name(self) -&gt; str:
+        return "MyProtection"
+
+    def short_desc(self) -&gt; str:
+        return f"MyProtection: max {self._max_losses} losses"
+
+    def global_stop(self, date_now: datetime, side: LongShort) -&gt; ProtectionReturn | None:
+        """Check if global trading should be stopped"""
+        return None  # Not implemented for this example
+
+    def stop_per_pair(
+        self, pair: str, date_now: datetime, side: LongShort
+    ) -&gt; ProtectionReturn | None:
+        """Check if a specific pair should be locked"""
+        # Query recent trades and apply custom logic
+        trades = Trade.get_trades_proxy(
+            pair=pair,
+            is_open=False,
+            close_date=date_now - timedelta(minutes=self._lookback_period),
+        )
+        losses = sum(1 for t in trades if t.close_profit &lt; 0)
+        if losses &gt;= self._max_losses:
+            until = date_now + timedelta(minutes=self._stop_duration)
+            return ProtectionReturn(
+                lock=True,
+                until=until,
+                reason=f"{losses} losses in lookback period",
+            )
+        return None
+</code></pre>
+<p>Configuration:</p>
+<pre><code class="language-json">{
+    "protections": [
+        {
+            "method": "MyProtection",
+            "max_losses": 3,
+            "lookback_period_candles": 24,
+            "stop_duration_candles": 12
+        }
+    ]
+}
+</code></pre>
+<h2 id="configuration-reference">Configuration Reference<a class="headerlink" href="#configuration-reference" title="Permanent link">¶</a></h2>
+<p>Freqtrade uses JSON configuration files validated against a JSON Schema (<code>src/freqtrade/configuration/config_schema/</code>). Key sections:</p>
+<table>
+<thead>
+<tr>
+<th>Section</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>exchange</code></td>
+<td>Exchange name, API keys, pair whitelist/blacklist</td>
+</tr>
+<tr>
+<td><code>stake_currency</code></td>
+<td>Quote currency for trading (e.g., "USDT")</td>
+</tr>
+<tr>
+<td><code>stake_amount</code></td>
+<td>Amount per trade (or "unlimited")</td>
+</tr>
+<tr>
+<td><code>max_open_trades</code></td>
+<td>Maximum concurrent trades</td>
+</tr>
+<tr>
+<td><code>timeframe</code></td>
+<td>Candle timeframe</td>
+</tr>
+<tr>
+<td><code>dry_run</code></td>
+<td>Enable paper trading mode</td>
+</tr>
+<tr>
+<td><code>trading_mode</code></td>
+<td>"spot", "margin", or "futures"</td>
+</tr>
+<tr>
+<td><code>margin_mode</code></td>
+<td>"cross" or "isolated"</td>
+</tr>
+<tr>
+<td><code>entry_pricing</code> / <code>exit_pricing</code></td>
+<td>Order pricing configuration</td>
+</tr>
+<tr>
+<td><code>order_types</code></td>
+<td>Order type mapping (limit/market)</td>
+</tr>
+<tr>
+<td><code>stoploss</code></td>
+<td>Default stoploss percentage</td>
+</tr>
+<tr>
+<td><code>minimal_roi</code></td>
+<td>ROI table</td>
+</tr>
+<tr>
+<td><code>trailing_stop</code></td>
+<td>Trailing stoploss configuration</td>
+</tr>
+<tr>
+<td><code>pairlists</code></td>
+<td>Pairlist handler chain</td>
+</tr>
+<tr>
+<td><code>protections</code></td>
+<td>Protection plugin configuration</td>
+</tr>
+<tr>
+<td><code>telegram</code></td>
+<td>Telegram bot settings</td>
+</tr>
+<tr>
+<td><code>api_server</code></td>
+<td>REST API server settings</td>
+</tr>
+<tr>
+<td><code>freqai</code></td>
+<td>FreqAI ML configuration</td>
+</tr>
+<tr>
+<td><code>unfilledtimeout</code></td>
+<td>Order timeout settings</td>
+</tr>
+</tbody>
+</table>
+<p>Generate a new config interactively:</p>
+<pre><code class="language-bash">freqtrade new-config --config config.json
+</code></pre>
+<h2 id="useful-commands">Useful Commands<a class="headerlink" href="#useful-commands" title="Permanent link">¶</a></h2>
+<pre><code class="language-bash"># Strategy management
+freqtrade new-strategy --strategy MyStrategy
+freqtrade list-strategies
+freqtrade strategy-updater --strategy MyStrategy  # Migrate old strategy format
+
+# Data management
+freqtrade download-data --exchange binance --pairs BTC/USDT --timeframes 5m 1h --days 90
+freqtrade list-data --exchange binance
+freqtrade convert-data --format-from json --format-to feather
+
+# Backtesting
+freqtrade backtesting --strategy MyStrategy --timerange 20230101-20231231
+freqtrade backtesting --strategy-list Strategy1 Strategy2  # Compare strategies
+
+# Hyperopt
+freqtrade hyperopt --strategy MyStrategy --hyperopt-loss SharpeHyperOptLoss -e 500
+freqtrade hyperopt-list  # List results
+freqtrade hyperopt-show  # Show best result
+
+# Pairlist testing
+freqtrade test-pairlist --config config.json
+
+# Plotting
+freqtrade plot-dataframe --strategy MyStrategy --pair BTC/USDT
+freqtrade plot-profit --strategy MyStrategy
+
+# Database
+freqtrade show-trades --db-url sqlite:///tradesv3.sqlite
+</code></pre>
+<h2 id="strategy-callback-flow">Strategy Callback Flow<a class="headerlink" href="#strategy-callback-flow" title="Permanent link">¶</a></h2>
+<p>The following diagram shows the order in which strategy callbacks are invoked during each bot iteration and how they interact with order execution:</p>
+<div class="diagram"><pre class="mermaid" data-processed="true"><svg id="mermaid-1791740649238" width="100%" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" class="flowchart" style="max-width: 587.9453125px;" viewBox="4 4 587.9453125 3956" role="graphics-document document" aria-roledescription="flowchart-v2"><style>#mermaid-1791740649238{font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:16px;fill:#333;}@keyframes edge-animation-frame{from{stroke-dashoffset:0;}}@keyframes dash{to{stroke-dashoffset:0;}}#mermaid-1791740649238 .edge-animation-slow{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 50s linear infinite;stroke-linecap:round;}#mermaid-1791740649238 .edge-animation-fast{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 20s linear infinite;stroke-linecap:round;}#mermaid-1791740649238 .error-icon{fill:#552222;}#mermaid-1791740649238 .error-text{fill:#552222;stroke:#552222;}#mermaid-1791740649238 .edge-thickness-normal{stroke-width:1px;}#mermaid-1791740649238 .edge-thickness-thick{stroke-width:3.5px;}#mermaid-1791740649238 .edge-pattern-solid{stroke-dasharray:0;}#mermaid-1791740649238 .edge-thickness-invisible{stroke-width:0;fill:none;}#mermaid-1791740649238 .edge-pattern-dashed{stroke-dasharray:3;}#mermaid-1791740649238 .edge-pattern-dotted{stroke-dasharray:2;}#mermaid-1791740649238 .marker{fill:#333333;stroke:#333333;}#mermaid-1791740649238 .marker.cross{stroke:#333333;}#mermaid-1791740649238 svg{font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:16px;}#mermaid-1791740649238 p{margin:0;}#mermaid-1791740649238 .label{font-family:"trebuchet ms",verdana,arial,sans-serif;color:#333;}#mermaid-1791740649238 .cluster-label text{fill:#333;}#mermaid-1791740649238 .cluster-label span{color:#333;}#mermaid-1791740649238 .cluster-label span p{background-color:transparent;}#mermaid-1791740649238 .label text,#mermaid-1791740649238 span{fill:#333;color:#333;}#mermaid-1791740649238 .node rect,#mermaid-1791740649238 .node circle,#mermaid-1791740649238 .node ellipse,#mermaid-1791740649238 .node polygon,#mermaid-1791740649238 .node path{fill:#ECECFF;stroke:#9370DB;stroke-width:1px;}#mermaid-1791740649238 .rough-node .label text,#mermaid-1791740649238 .node .label text,#mermaid-1791740649238 .image-shape .label,#mermaid-1791740649238 .icon-shape .label{text-anchor:middle;}#mermaid-1791740649238 .node .katex path{fill:#000;stroke:#000;stroke-width:1px;}#mermaid-1791740649238 .rough-node .label,#mermaid-1791740649238 .node .label,#mermaid-1791740649238 .image-shape .label,#mermaid-1791740649238 .icon-shape .label{text-align:center;}#mermaid-1791740649238 .node.clickable{cursor:pointer;}#mermaid-1791740649238 .root .anchor path{fill:#333333!important;stroke-width:0;stroke:#333333;}#mermaid-1791740649238 .arrowheadPath{fill:#333333;}#mermaid-1791740649238 .edgePaths .path{stroke:#333333;stroke-width:1px;}#mermaid-1791740649238 .flowchart-link{stroke:#333333;fill:none;}#mermaid-1791740649238 .edgeLabel{background-color:rgba(232,232,232, 0.8);text-align:center;}#mermaid-1791740649238 .edgeLabel p{background-color:rgba(232,232,232, 0.8);}#mermaid-1791740649238 .edgeLabel rect{opacity:0.5;background-color:rgba(232,232,232, 0.8);fill:rgba(232,232,232, 0.8);}#mermaid-1791740649238 .labelBkg{background-color:rgba(232, 232, 232, 0.5);}#mermaid-1791740649238 .cluster rect{fill:#ffffde;stroke:#aaaa33;stroke-width:1px;}#mermaid-1791740649238 .cluster text{fill:#333;}#mermaid-1791740649238 .cluster span{color:#333;}#mermaid-1791740649238 .node .collapsed-indicator{fill:#aaaa33;stroke:none;opacity:0.6;}#mermaid-1791740649238 .node .collapsed-separator{stroke:#aaaa33;stroke-width:0.75px;}#mermaid-1791740649238 div.mermaidTooltip{position:absolute;text-align:center;max-width:200px;padding:2px;font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:12px;background:hsl(80, 100%, 96.2745098039%);border:1px solid #aaaa33;border-radius:2px;pointer-events:none;z-index:100;}#mermaid-1791740649238 .flowchartTitleText{text-anchor:middle;font-size:18px;fill:#333;}#mermaid-1791740649238 rect.text{fill:none;stroke-width:0;}#mermaid-1791740649238 .icon-shape,#mermaid-1791740649238 .image-shape{background-color:rgba(232,232,232, 0.8);text-align:center;}#mermaid-1791740649238 .icon-shape p,#mermaid-1791740649238 .image-shape p{background-color:rgba(232,232,232, 0.8);padding:2px;}#mermaid-1791740649238 .icon-shape .label rect,#mermaid-1791740649238 .image-shape .label rect{opacity:0.5;background-color:rgba(232,232,232, 0.8);fill:rgba(232,232,232, 0.8);}#mermaid-1791740649238 .label-icon{display:inline-block;height:1em;overflow:visible;vertical-align:-0.125em;}#mermaid-1791740649238 .node .label-icon path{fill:currentColor;stroke:revert;stroke-width:revert;}#mermaid-1791740649238 .node .neo-node{stroke:#9370DB;}#mermaid-1791740649238 [data-look="neo"].node rect,#mermaid-1791740649238 [data-look="neo"].cluster rect,#mermaid-1791740649238 [data-look="neo"].node polygon{stroke:#9370DB;filter:drop-shadow(1px 2px 2px rgba(185, 185, 185, 1));}#mermaid-1791740649238 [data-look="neo"].swimlane.cluster rect{filter:none;}#mermaid-1791740649238 [data-look="neo"].node path{stroke:#9370DB;stroke-width:1px;}#mermaid-1791740649238 [data-look="neo"].node .outer-path{filter:drop-shadow(1px 2px 2px rgba(185, 185, 185, 1));}#mermaid-1791740649238 [data-look="neo"].node .neo-line path{stroke:#9370DB;filter:none;}#mermaid-1791740649238 [data-look="neo"].node circle{stroke:#9370DB;filter:drop-shadow(1px 2px 2px rgba(185, 185, 185, 1));}#mermaid-1791740649238 [data-look="neo"].node circle .state-start{fill:#000000;}#mermaid-1791740649238 [data-look="neo"].icon-shape .icon{fill:#9370DB;filter:drop-shadow(1px 2px 2px rgba(185, 185, 185, 1));}#mermaid-1791740649238 [data-look="neo"].icon-shape .icon-neo path{stroke:#9370DB;filter:drop-shadow(1px 2px 2px rgba(185, 185, 185, 1));}#mermaid-1791740649238 :root{--mermaid-font-family:"trebuchet ms",verdana,arial,sans-serif;}</style><g><marker id="mermaid-1791740649238_flowchart-v2-pointEnd" class="marker flowchart-v2" viewBox="0 0 10 10" refX="5" refY="5" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"></path></marker><marker id="mermaid-1791740649238_flowchart-v2-pointStart" class="marker flowchart-v2" viewBox="0 0 10 10" refX="4.5" refY="5" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 5 L 10 10 L 10 0 z" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"></path></marker><marker id="mermaid-1791740649238_flowchart-v2-pointEnd-margin" class="marker flowchart-v2" viewBox="0 0 11.5 14" refX="11.5" refY="7" markerUnits="userSpaceOnUse" markerWidth="10.5" markerHeight="14" orient="auto"><path d="M 0 0 L 11.5 7 L 0 14 z" class="arrowMarkerPath" style="stroke-width: 0; stroke-dasharray: 1, 0;"></path></marker><marker id="mermaid-1791740649238_flowchart-v2-pointStart-margin" class="marker flowchart-v2" viewBox="0 0 11.5 14" refX="1" refY="7" markerUnits="userSpaceOnUse" markerWidth="11.5" markerHeight="14" orient="auto"><polygon points="0,7 11.5,14 11.5,0" class="arrowMarkerPath" style="stroke-width: 0; stroke-dasharray: 1, 0;"></polygon></marker><marker id="mermaid-1791740649238_flowchart-v2-circleEnd" class="marker flowchart-v2" viewBox="0 0 10 10" refX="11" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><circle cx="5" cy="5" r="5" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"></circle></marker><marker id="mermaid-1791740649238_flowchart-v2-circleStart" class="marker flowchart-v2" viewBox="0 0 10 10" refX="-1" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><circle cx="5" cy="5" r="5" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"></circle></marker><marker id="mermaid-1791740649238_flowchart-v2-circleEnd-margin" class="marker flowchart-v2" viewBox="0 0 10 10" refY="5" refX="12.25" markerUnits="userSpaceOnUse" markerWidth="14" markerHeight="14" orient="auto"><circle cx="5" cy="5" r="5" class="arrowMarkerPath" style="stroke-width: 0; stroke-dasharray: 1, 0;"></circle></marker><marker id="mermaid-1791740649238_flowchart-v2-circleStart-margin" class="marker flowchart-v2" viewBox="0 0 10 10" refX="-2" refY="5" markerUnits="userSpaceOnUse" markerWidth="14" markerHeight="14" orient="auto"><circle cx="5" cy="5" r="5" class="arrowMarkerPath" style="stroke-width: 0; stroke-dasharray: 1, 0;"></circle></marker><marker id="mermaid-1791740649238_flowchart-v2-crossEnd" class="marker cross flowchart-v2" viewBox="0 0 11 11" refX="12" refY="5.2" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><path d="M 1,1 l 9,9 M 10,1 l -9,9" class="arrowMarkerPath" style="stroke-width: 2; stroke-dasharray: 1, 0;"></path></marker><marker id="mermaid-1791740649238_flowchart-v2-crossStart" class="marker cross flowchart-v2" viewBox="0 0 11 11" refX="-1" refY="5.2" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><path d="M 1,1 l 9,9 M 10,1 l -9,9" class="arrowMarkerPath" style="stroke-width: 2; stroke-dasharray: 1, 0;"></path></marker><marker id="mermaid-1791740649238_flowchart-v2-crossEnd-margin" class="marker cross flowchart-v2" viewBox="0 0 15 15" refX="17.7" refY="7.5" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" orient="auto"><path d="M 1,1 L 14,14 M 1,14 L 14,1" class="arrowMarkerPath" style="stroke-width: 2.5;"></path></marker><marker id="mermaid-1791740649238_flowchart-v2-crossStart-margin" class="marker cross flowchart-v2" viewBox="0 0 15 15" refX="-3.5" refY="7.5" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" orient="auto"><path d="M 1,1 L 14,14 M 1,14 L 14,1" class="arrowMarkerPath" style="stroke-width: 2.5; stroke-dasharray: 1, 0;"></path></marker><g class="root"><g class="clusters"></g><g class="edges edgePaths"><path d="M371.25,84L371.25,120" id="mermaid-1791740649238-L_TICK_BLS_0" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style="stroke-dasharray: 0 0 32 4; stroke-dashoffset: 0;;" data-edge="true" data-et="edge" data-id="L_TICK_BLS_0" data-points="W3sieCI6MzcxLjI1LCJ5Ijo4NH0seyJ4IjozNzEuMjUsInkiOjEyNH1d" data-look="neo" marker-end="url(#mermaid-1791740649238_flowchart-v2-pointEnd-margin)"></path><path d="M371.25,172L371.25,208" id="mermaid-1791740649238-L_BLS_NEW_CANDLE_0" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style="stroke-dasharray: 0 0 32 4; stroke-dashoffset: 0;;" data-edge="true" data-et="edge" data-id="L_BLS_NEW_CANDLE_0" data-points="W3sieCI6MzcxLjI1LCJ5IjoxNzJ9LHsieCI6MzcxLjI1LCJ5IjoyMTJ9XQ==" data-look="neo" marker-end="url(#mermaid-1791740649238_flowchart-v2-pointEnd-margin)"></path><path d="M345.5833333333333,360.3332509994507L345.5833333333333,386L345.5833333333333,398.9289321881345Q345.5833333333333,406 338.51226552146784,406L282.3210678118655,406Q275.25,406 275.25,413.0710678118655L275.25,486" id="mermaid-1791740649238-L_NEW_CANDLE_PI_0" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style="stroke-dasharray: 0 0 186.67181396484375 4; stroke-dashoffset: 0;;" data-edge="true" data-et="edge" data-id="L_NEW_CANDLE_PI_0" data-points="W3sieCI6MzQ1LjU4MzMzMzMzMzMzMzMsInkiOjM2MC4zMzMyNTA5OTk0NTA3fSx7IngiOjM0NS41ODMzMzMzMzMzMzMzLCJ5IjozODZ9LHsieCI6MzQ1LjU4MzMzMzMzMzMzMzMsInkiOjQwNn0seyJ4IjoyNzUuMjUsInkiOjQwNn0seyJ4IjoyNzUuMjUsInkiOjQ5MH1d" data-look="neo" marker-end="url(#mermaid-1791740649238_flowchart-v2-pointEnd-margin)"></path><path d="M396.9166666666667,360.3332509994507L396.9166666666667,386L396.9166666666667,398.9289321881345Q396.9166666666667,406 403.98773447853216,406L460.1789321881345,406Q467.25,406 467.25,413.0710678118655L467.25,526L467.25,598" id="mermaid-1791740649238-L_NEW_CANDLE_SKIP_ANALYSIS_0" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style="stroke-dasharray: 0 0 298.6717834472656 4; stroke-dashoffset: 0;;" data-edge="true" data-et="edge" data-id="L_NEW_CANDLE_SKIP_ANALYSIS_0" data-points="W3sieCI6Mzk2LjkxNjY2NjY2NjY2NjcsInkiOjM2MC4zMzMyNTA5OTk0NTA3fSx7IngiOjM5Ni45MTY2NjY2NjY2NjY3LCJ5IjozODZ9LHsieCI6Mzk2LjkxNjY2NjY2NjY2NjcsInkiOjQwNn0seyJ4Ijo0NjcuMjUsInkiOjQwNn0seyJ4Ijo0NjcuMjUsInkiOjUyNn0seyJ4Ijo0NjcuMjUsInkiOjYwMn1d" data-look="neo" marker-end="url(#mermaid-1791740649238_flowchart-v2-pointEnd-margin)"></path><path d="M275.25,562L275.25,598" id="mermaid-1791740649238-L_PI_PET_0" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style="stroke-dasharray: 0 0 32 4; stroke-dashoffset: 0;;" data-edge="true" data-et="edge" data-id="L_PI_PET_0" data-points="W3sieCI6Mjc1LjI1LCJ5Ijo1NjJ9LHsieCI6Mjc1LjI1LCJ5Ijo2MDJ9XQ==" data-look="neo" marker-end="url(#mermaid-1791740649238_flowchart-v2-pointEnd-margin)"></path><path d="M275.25,674L275.25,710" id="mermaid-1791740649238-L_PET_PXT_0" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style="stroke-dasharray: 0 0 32 4; stroke-dashoffset: 0;;" data-edge="true" data-et="edge" data-id="L_PET_PXT_0" data-points="W3sieCI6Mjc1LjI1LCJ5Ijo2NzR9LHsieCI6Mjc1LjI1LCJ5Ijo3MTR9XQ==" data-look="neo" marker-end="url(#mermaid-1791740649238_flowchart-v2-pointEnd-margin)"></path><path d="M275.25,786L275.25,798.9289321881345Q275.25,806 282.3210678118655,806L342.1789321881345,806Q349.25,806 349.25,813.0710678118655L349.25,822" id="mermaid-1791740649238-L_PXT_ANALYZED_0" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style="stroke-dasharray: 0 0 100.67169952392578 4; stroke-dashoffset: 0;;" data-edge="true" data-et="edge" data-id="L_PXT_ANALYZED_0" data-points="W3sieCI6Mjc1LjI1LCJ5Ijo3ODZ9LHsieCI6Mjc1LjI1LCJ5Ijo4MDZ9LHsieCI6MzQ5LjI1LCJ5Ijo4MDZ9LHsieCI6MzQ5LjI1LCJ5Ijo4MjZ9XQ==" data-look="neo" marker-end="url(#mermaid-1791740649238_flowchart-v2-pointEnd-margin)"></path><path d="M467.25,674L467.25,750L467.25,798.9289321881345Q467.25,806 460.1789321881345,806L400.3210678118655,806Q393.25,806 393.25,813.0710678118655L393.25,822" id="mermaid-1791740649238-L_SKIP_ANALYSIS_ANALYZED_0" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style="stroke-dasharray: 0 0 212.6717071533203 4; stroke-dashoffset: 0;;" data-edge="true" data-et="edge" data-id="L_SKIP_ANALYSIS_ANALYZED_0" data-points="W3sieCI6NDY3LjI1LCJ5Ijo2NzR9LHsieCI6NDY3LjI1LCJ5Ijo3NTB9LHsieCI6NDY3LjI1LCJ5Ijo4MDZ9LHsieCI6MzkzLjI1LCJ5Ijo4MDZ9LHsieCI6MzkzLjI1LCJ5Ijo4MjZ9XQ==" data-look="neo" marker-end="url(#mermaid-1791740649238_flowchart-v2-pointEnd-margin)"></path><path d="M371.25,922L371.25,958" id="mermaid-1791740649238-L_ANALYZED_OPEN_TRADES_0" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style="stroke-dasharray: 0 0 32 4; stroke-dashoffset: 0;;" data-edge="true" data-et="edge" data-id="L_ANALYZED_OPEN_TRADES_0" data-points="W3sieCI6MzcxLjI1LCJ5Ijo5MjJ9LHsieCI6MzcxLjI1LCJ5Ijo5NjJ9XQ==" data-look="neo" marker-end="url(#mermaid-1791740649238_flowchart-v2-pointEnd-margin)"></path><path d="M345.5833333333333,1110.3332509994507L345.5833333333333,1136L345.5833333333333,1148.9289321881345Q345.5833333333333,1156 338.51226552146784,1156L318.8210678118655,1156Q311.75,1156 311.75,1163.0710678118655L311.75,1236" id="mermaid-1791740649238-L_OPEN_TRADES_CSL_0" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style="stroke-dasharray: 0 0 150.17178344726562 4; stroke-dashoffset: 0;;" data-edge="true" data-et="edge" data-id="L_OPEN_TRADES_CSL_0" data-points="W3sieCI6MzQ1LjU4MzMzMzMzMzMzMzMsInkiOjExMTAuMzMzMjUwOTk5NDUwN30seyJ4IjozNDUuNTgzMzMzMzMzMzMzMywieSI6MTEzNn0seyJ4IjozNDUuNTgzMzMzMzMzMzMzMywieSI6MTE1Nn0seyJ4IjozMTEuNzUsInkiOjExNTZ9LHsieCI6MzExLjc1LCJ5IjoxMjQwfV0=" data-look="neo" marker-end="url(#mermaid-1791740649238_flowchart-v2-pointEnd-margin)"></path><path d="M311.75,1288L311.75,1324" id="mermaid-1791740649238-L_CSL_SE_0" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style="stroke-dasharray: 0 0 32 4; stroke-dashoffset: 0;;" data-edge="true" data-et="edge" data-id="L_CSL_SE_0" data-points="W3sieCI6MzExLjc1LCJ5IjoxMjg4fSx7IngiOjMxMS43NSwieSI6MTMyOH1d" data-look="neo" marker-end="url(#mermaid-1791740649238_flowchart-v2-pointEnd-margin)"></path><path d="M311.75,1400L311.75,1436" id="mermaid-1791740649238-L_SE_EXIT_COND_0" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style="stroke-dasharray: 0 0 32 4; stroke-dashoffset: 0;;" data-edge="true" data-et="edge" data-id="L_SE_EXIT_COND_0" data-points="W3sieCI6MzExLjc1LCJ5IjoxNDAwfSx7IngiOjMxMS43NSwieSI6MTQ0MH1d" data-look="neo" marker-end="url(#mermaid-1791740649238_flowchart-v2-pointEnd-margin)"></path><path d="M282.08333333333337,1608.333309173584L282.08333333333337,1638L282.08333333333337,1650.9289321881345Q282.08333333333337,1658 275.0122655214679,1658L256.0710678118655,1658Q249,1658 249,1665.0710678118655L249,1738" id="mermaid-1791740649238-L_EXIT_COND_CEP_0" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style="stroke-dasharray: 0 0 153.42185974121094 4; stroke-dashoffset: 0;;" data-edge="true" data-et="edge" data-id="L_EXIT_COND_CEP_0" data-points="W3sieCI6MjgyLjA4MzMzMzMzMzMzMzM3LCJ5IjoxNjA4LjMzMzMwOTE3MzU4NH0seyJ4IjoyODIuMDgzMzMzMzMzMzMzMzcsInkiOjE2Mzh9LHsieCI6MjgyLjA4MzMzMzMzMzMzMzM3LCJ5IjoxNjU4fSx7IngiOjI0OSwieSI6MTY1OH0seyJ4IjoyNDksInkiOjE3NDJ9XQ==" data-look="neo" marker-end="url(#mermaid-1791740649238_flowchart-v2-pointEnd-margin)"></path><path d="M249,1814L249,1850" id="mermaid-1791740649238-L_CEP_CTE_EXIT_0" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style="stroke-dasharray: 0 0 32 4; stroke-dashoffset: 0;;" data-edge="true" data-et="edge" data-id="L_CEP_CTE_EXIT_0" data-points="W3sieCI6MjQ5LCJ5IjoxODE0fSx7IngiOjI0OSwieSI6MTg1NH1d" data-look="neo" marker-end="url(#mermaid-1791740649238_flowchart-v2-pointEnd-margin)"></path><path d="M227,1926L227,1938.9289321881345Q227,1946 219.92893218813452,1946L95.07106781186548,1946Q88,1946 88,1953.0710678118655L88,1978L88,2256L88,2316" id="mermaid-1791740649238-L_CTE_EXIT_PLACE_EXIT_0" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style="stroke-dasharray: 0 0 519.6718139648438 4; stroke-dashoffset: 0;;" data-edge="true" data-et="edge" data-id="L_CTE_EXIT_PLACE_EXIT_0" data-points="W3sieCI6MjI3LCJ5IjoxOTI2fSx7IngiOjIyNywieSI6MTk0Nn0seyJ4Ijo4OCwieSI6MTk0Nn0seyJ4Ijo4OCwieSI6MTk3OH0seyJ4Ijo4OCwieSI6MjI1Nn0seyJ4Ijo4OCwieSI6MjMyMH1d" data-look="neo" marker-end="url(#mermaid-1791740649238_flowchart-v2-pointEnd-margin)"></path><path d="M271,1926L271,1938.9289321881345Q271,1946 278.0710678118655,1946L343.2258071881346,1946Q350.29687500000006,1946 350.29687500000006,1953.0710678118655L350.29687500000006,2002.9289321881345Q350.29687500000006,2010 357.36794281186553,2010L395.39247385480127,2010Q402.46354166666674,2010 402.46354166666674,2017.0710678118655L402.46354166666674,2030L402.46354166666674,2051.6667490005493" id="mermaid-1791740649238-L_CTE_EXIT_DCA_CHECK_0" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style="stroke-dasharray: 0 0 242.4739532470703 4; stroke-dashoffset: 0;;" data-edge="true" data-et="edge" data-id="L_CTE_EXIT_DCA_CHECK_0" data-points="W3sieCI6MjcxLCJ5IjoxOTI2fSx7IngiOjI3MSwieSI6MTk0Nn0seyJ4IjozNTAuMjk2ODc1MDAwMDAwMDYsInkiOjE5NDZ9LHsieCI6MzUwLjI5Njg3NTAwMDAwMDA2LCJ5IjoyMDEwfSx7IngiOjQwMi40NjM1NDE2NjY2NjY3NCwieSI6MjAxMH0seyJ4Ijo0MDIuNDYzNTQxNjY2NjY2NzQsInkiOjIwMzB9LHsieCI6NDAyLjQ2MzU0MTY2NjY2Njc0LCJ5IjoyMDU1LjY2Njc0OTAwMDU0OTN9XQ==" data-look="neo" marker-end="url(#mermaid-1791740649238_flowchart-v2-pointEnd-margin)"></path><path d="M341.4166666666667,1608.333309173584L341.4166666666667,1638L341.4166666666667,1650.9289321881345Q341.4166666666667,1658 348.48773447853216,1658L446.7258071881346,1658Q453.79687500000006,1658 453.79687500000006,1665.0710678118655L453.79687500000006,1690L453.79687500000006,1890L453.79687500000006,1978L453.79687500000006,2030L453.79687500000006,2051.6667490005493" id="mermaid-1791740649238-L_EXIT_COND_DCA_CHECK_0" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style="stroke-dasharray: 0 0 546.385498046875 4; stroke-dashoffset: 0;;" data-edge="true" data-et="edge" data-id="L_EXIT_COND_DCA_CHECK_0" data-points="W3sieCI6MzQxLjQxNjY2NjY2NjY2NjcsInkiOjE2MDguMzMzMzA5MTczNTg0fSx7IngiOjM0MS40MTY2NjY2NjY2NjY3LCJ5IjoxNjM4fSx7IngiOjM0MS40MTY2NjY2NjY2NjY3LCJ5IjoxNjU4fSx7IngiOjQ1My43OTY4NzUwMDAwMDAwNiwieSI6MTY1OH0seyJ4Ijo0NTMuNzk2ODc1MDAwMDAwMDYsInkiOjE2OTB9LHsieCI6NDUzLjc5Njg3NTAwMDAwMDA2LCJ5IjoxODkwfSx7IngiOjQ1My43OTY4NzUwMDAwMDAwNiwieSI6MTk3OH0seyJ4Ijo0NTMuNzk2ODc1MDAwMDAwMDYsInkiOjIwMzB9LHsieCI6NDUzLjc5Njg3NTAwMDAwMDA2LCJ5IjoyMDU1LjY2Njc0OTAwMDU0OTN9XQ==" data-look="neo" marker-end="url(#mermaid-1791740649238_flowchart-v2-pointEnd-margin)"></path><path d="M402.46354166666674,2178.3332509994507L402.46354166666674,2204L402.46354166666674,2216.9289321881347Q402.46354166666674,2224 395.39247385480127,2224L335.5710678118655,2224Q328.5,2224 328.5,2231.0710678118653L328.5,2304" id="mermaid-1791740649238-L_DCA_CHECK_ATP_0" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style="stroke-dasharray: 0 0 190.3021240234375 4; stroke-dashoffset: 0;;" data-edge="true" data-et="edge" data-id="L_DCA_CHECK_ATP_0" data-points="W3sieCI6NDAyLjQ2MzU0MTY2NjY2Njc0LCJ5IjoyMTc4LjMzMzI1MDk5OTQ1MDd9LHsieCI6NDAyLjQ2MzU0MTY2NjY2Njc0LCJ5IjoyMjA0fSx7IngiOjQwMi40NjM1NDE2NjY2NjY3NCwieSI6MjIyNH0seyJ4IjozMjguNSwieSI6MjIyNH0seyJ4IjozMjguNSwieSI6MjMwOH1d" data-look="neo" marker-end="url(#mermaid-1791740649238_flowchart-v2-pointEnd-margin)"></path><path d="M328.5,2380L328.5,2416" id="mermaid-1791740649238-L_ATP_DCA_RESULT_0" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style="stroke-dasharray: 0 0 32 4; stroke-dashoffset: 0;;" data-edge="true" data-et="edge" data-id="L_ATP_DCA_RESULT_0" data-points="W3sieCI6MzI4LjUsInkiOjIzODB9LHsieCI6MzI4LjUsInkiOjI0MjB9XQ==" data-look="neo" marker-end="url(#mermaid-1791740649238_flowchart-v2-pointEnd-margin)"></path><path d="M290,2555.499917984009L290,2594L290,2606.9289321881347Q290,2614 282.9289321881345,2614L193.90440114519882,2614Q186.83333333333334,2614 186.83333333333334,2621.0710678118653L186.83333333333334,2726" id="mermaid-1791740649238-L_DCA_RESULT_INCREASE_0" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style="stroke-dasharray: 0 0 264.33856201171875 4; stroke-dashoffset: 0;;" data-edge="true" data-et="edge" data-id="L_DCA_RESULT_INCREASE_0" data-points="W3sieCI6MjkwLCJ5IjoyNTU1LjQ5OTkxNzk4NDAwOX0seyJ4IjoyOTAsInkiOjI1OTR9LHsieCI6MjkwLCJ5IjoyNjE0fSx7IngiOjE4Ni44MzMzMzMzMzMzMzMzNCwieSI6MjYxNH0seyJ4IjoxODYuODMzMzMzMzMzMzMzMzQsInkiOjI3MzB9XQ==" data-look="neo" marker-end="url(#mermaid-1791740649238_flowchart-v2-pointEnd-margin)"></path><path d="M328.5,2594L328.5,2626.9289321881347Q328.5,2634 335.5710678118655,2634L371.76226552146784,2634Q378.8333333333333,2634 378.8333333333333,2641.0710678118653L378.8333333333333,2714" id="mermaid-1791740649238-L_DCA_RESULT_DECREASE_0" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style="stroke-dasharray: 0 0 161.00526428222656 4; stroke-dashoffset: 0;;" data-edge="true" data-et="edge" data-id="L_DCA_RESULT_DECREASE_0" data-points="W3sieCI6MzI4LjUsInkiOjI1OTR9LHsieCI6MzI4LjUsInkiOjI2MzR9LHsieCI6Mzc4LjgzMzMzMzMzMzMzMzMsInkiOjI2MzR9LHsieCI6Mzc4LjgzMzMzMzMzMzMzMzMsInkiOjI3MTh9XQ==" data-look="neo" marker-end="url(#mermaid-1791740649238_flowchart-v2-pointEnd-margin)"></path><path d="M367,2555.499917984009L367,2594L367,2606.9289321881347Q367,2614 374.0710678118655,2614L469.12945302146784,2614Q476.2005208333333,2614 476.2005208333333,2621.0710678118653L476.2005208333333,2754L476.2005208333333,2802.9289321881347Q476.2005208333333,2810 469.12945302146784,2810L434.53460947853216,2810Q427.4635416666667,2810 427.4635416666667,2817.0710678118653L427.4635416666667,2866" id="mermaid-1791740649238-L_DCA_RESULT_ENTRY_CHECK_0" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style="stroke-dasharray: 0 0 453.7813415527344 4; stroke-dashoffset: 0;;" data-edge="true" data-et="edge" data-id="L_DCA_RESULT_ENTRY_CHECK_0" data-points="W3sieCI6MzY3LCJ5IjoyNTU1LjQ5OTkxNzk4NDAwOX0seyJ4IjozNjcsInkiOjI1OTR9LHsieCI6MzY3LCJ5IjoyNjE0fSx7IngiOjQ3Ni4yMDA1MjA4MzMzMzMzLCJ5IjoyNjE0fSx7IngiOjQ3Ni4yMDA1MjA4MzMzMzMzLCJ5IjoyNzU0fSx7IngiOjQ3Ni4yMDA1MjA4MzMzMzMzLCJ5IjoyODEwfSx7IngiOjQyNy40NjM1NDE2NjY2NjY3LCJ5IjoyODEwfSx7IngiOjQyNy40NjM1NDE2NjY2NjY3LCJ5IjoyODcwfV0=" data-look="neo" marker-end="url(#mermaid-1791740649238_flowchart-v2-pointEnd-margin)"></path><path d="M186.83333333333334,2778L186.83333333333334,2822.9289321881347Q186.83333333333334,2830 193.90440114519882,2830L376.3924738548012,2830Q383.4635416666667,2830 383.4635416666667,2837.0710678118653L383.4635416666667,2866" id="mermaid-1791740649238-L_INCREASE_ENTRY_CHECK_0" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style="stroke-dasharray: 0 0 275.30218505859375 4; stroke-dashoffset: 0;;" data-edge="true" data-et="edge" data-id="L_INCREASE_ENTRY_CHECK_0" data-points="W3sieCI6MTg2LjgzMzMzMzMzMzMzMzM0LCJ5IjoyNzc4fSx7IngiOjE4Ni44MzMzMzMzMzMzMzMzNCwieSI6MjgzMH0seyJ4IjozODMuNDYzNTQxNjY2NjY2NywieSI6MjgzMH0seyJ4IjozODMuNDYzNTQxNjY2NjY2NywieSI6Mjg3MH1d" data-look="neo" marker-end="url(#mermaid-1791740649238_flowchart-v2-pointEnd-margin)"></path><path d="M378.8333333333333,2790L378.8333333333333,2802.9289321881347Q378.8333333333333,2810 385.9044011451988,2810L398.3924738548012,2810Q405.4635416666667,2810 405.4635416666667,2817.0710678118653L405.4635416666667,2866" id="mermaid-1791740649238-L_DECREASE_ENTRY_CHECK_0" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style="stroke-dasharray: 0 0 93.30216217041016 4; stroke-dashoffset: 0;;" data-edge="true" data-et="edge" data-id="L_DECREASE_ENTRY_CHECK_0" data-points="W3sieCI6Mzc4LjgzMzMzMzMzMzMzMzMsInkiOjI3OTB9LHsieCI6Mzc4LjgzMzMzMzMzMzMzMzMsInkiOjI4MTB9LHsieCI6NDA1LjQ2MzU0MTY2NjY2NjcsInkiOjI4MTB9LHsieCI6NDA1LjQ2MzU0MTY2NjY2NjcsInkiOjI4NzB9XQ==" data-look="neo" marker-end="url(#mermaid-1791740649238_flowchart-v2-pointEnd-margin)"></path><path d="M453.79687500000006,2178.3332509994507L453.79687500000006,2204L453.79687500000006,2216.9289321881347Q453.79687500000006,2224 460.86794281186553,2224L508.2622655214678,2224Q515.3333333333333,2224 515.3333333333333,2231.0710678118653L515.3333333333333,2256L515.3333333333333,2344L515.3333333333333,2666L515.3333333333333,2754L515.3333333333333,2822.9289321881347Q515.3333333333333,2830 508.2622655214678,2830L456.53460947853216,2830Q449.4635416666667,2830 449.4635416666667,2837.0710678118653L449.4635416666667,2866" id="mermaid-1791740649238-L_DCA_CHECK_ENTRY_CHECK_0" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style="stroke-dasharray: 0 0 800.4168090820312 4; stroke-dashoffset: 0;;" data-edge="true" data-et="edge" data-id="L_DCA_CHECK_ENTRY_CHECK_0" data-points="W3sieCI6NDUzLjc5Njg3NTAwMDAwMDA2LCJ5IjoyMTc4LjMzMzI1MDk5OTQ1MDd9LHsieCI6NDUzLjc5Njg3NTAwMDAwMDA2LCJ5IjoyMjA0fSx7IngiOjQ1My43OTY4NzUwMDAwMDAwNiwieSI6MjIyNH0seyJ4Ijo1MTUuMzMzMzMzMzMzMzMzMywieSI6MjIyNH0seyJ4Ijo1MTUuMzMzMzMzMzMzMzMzMywieSI6MjI1Nn0seyJ4Ijo1MTUuMzMzMzMzMzMzMzMzMywieSI6MjM0NH0seyJ4Ijo1MTUuMzMzMzMzMzMzMzMzMywieSI6MjY2Nn0seyJ4Ijo1MTUuMzMzMzMzMzMzMzMzMywieSI6Mjc1NH0seyJ4Ijo1MTUuMzMzMzMzMzMzMzMzMywieSI6MjgzMH0seyJ4Ijo0NDkuNDYzNTQxNjY2NjY2NywieSI6MjgzMH0seyJ4Ijo0NDkuNDYzNTQxNjY2NjY2NywieSI6Mjg3MH1d" data-look="neo" marker-end="url(#mermaid-1791740649238_flowchart-v2-pointEnd-margin)"></path><path d="M396.9166666666667,1110.3332509994507L396.9166666666667,1136L396.9166666666667,1148.9289321881345Q396.9166666666667,1156 403.98773447853216,1156L567.5773696881345,1156Q574.6484375,1156 574.6484375,1163.0710678118655L574.6484375,1188L574.6484375,1264L574.6484375,1364L574.6484375,1539L574.6484375,1690L574.6484375,1778L574.6484375,1978L574.6484375,2117L574.6484375,2256L574.6484375,2344L574.6484375,2507L574.6484375,2666L574.6484375,2754L574.6484375,2842.9289321881347Q574.6484375,2850 567.5773696881345,2850L478.53460947853216,2850Q471.4635416666667,2850 471.4635416666667,2857.0710678118653L471.4635416666667,2866" id="mermaid-1791740649238-L_OPEN_TRADES_ENTRY_CHECK_0" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style="stroke-dasharray: 0 0 2021.927001953125 4; stroke-dashoffset: 0;;" data-edge="true" data-et="edge" data-id="L_OPEN_TRADES_ENTRY_CHECK_0" data-points="W3sieCI6Mzk2LjkxNjY2NjY2NjY2NjcsInkiOjExMTAuMzMzMjUwOTk5NDUwN30seyJ4IjozOTYuOTE2NjY2NjY2NjY2NywieSI6MTEzNn0seyJ4IjozOTYuOTE2NjY2NjY2NjY2NywieSI6MTE1Nn0seyJ4Ijo1NzQuNjQ4NDM3NSwieSI6MTE1Nn0seyJ4Ijo1NzQuNjQ4NDM3NSwieSI6MTE4OH0seyJ4Ijo1NzQuNjQ4NDM3NSwieSI6MTI2NH0seyJ4Ijo1NzQuNjQ4NDM3NSwieSI6MTM2NH0seyJ4Ijo1NzQuNjQ4NDM3NSwieSI6MTUzOX0seyJ4Ijo1NzQuNjQ4NDM3NSwieSI6MTY5MH0seyJ4Ijo1NzQuNjQ4NDM3NSwieSI6MTc3OH0seyJ4Ijo1NzQuNjQ4NDM3NSwieSI6MTk3OH0seyJ4Ijo1NzQuNjQ4NDM3NSwieSI6MjExN30seyJ4Ijo1NzQuNjQ4NDM3NSwieSI6MjI1Nn0seyJ4Ijo1NzQuNjQ4NDM3NSwieSI6MjM0NH0seyJ4Ijo1NzQuNjQ4NDM3NSwieSI6MjUwN30seyJ4Ijo1NzQuNjQ4NDM3NSwieSI6MjY2Nn0seyJ4Ijo1NzQuNjQ4NDM3NSwieSI6Mjc1NH0seyJ4Ijo1NzQuNjQ4NDM3NSwieSI6Mjg1MH0seyJ4Ijo0NzEuNDYzNTQxNjY2NjY2NywieSI6Mjg1MH0seyJ4Ijo0NzEuNDYzNTQxNjY2NjY2NywieSI6Mjg3MH1d" data-look="neo" marker-end="url(#mermaid-1791740649238_flowchart-v2-pointEnd-margin)"></path><path d="M427.4635416666667,2942L427.4635416666667,2978" id="mermaid-1791740649238-L_ENTRY_CHECK_SIGNAL_0" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style="stroke-dasharray: 0 0 32 4; stroke-dashoffset: 0;;" data-edge="true" data-et="edge" data-id="L_ENTRY_CHECK_SIGNAL_0" data-points="W3sieCI6NDI3LjQ2MzU0MTY2NjY2NjcsInkiOjI5NDJ9LHsieCI6NDI3LjQ2MzU0MTY2NjY2NjcsInkiOjI5ODJ9XQ==" data-look="neo" marker-end="url(#mermaid-1791740649238_flowchart-v2-pointEnd-margin)"></path><path d="M401.796875,3130.3332509994507L401.796875,3156L401.796875,3168.9289321881347Q401.796875,3176 394.7258071881345,3176L340.0710678118655,3176Q333,3176 333,3183.0710678118653L333,3256" id="mermaid-1791740649238-L_SIGNAL_CENP_0" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style="stroke-dasharray: 0 0 185.13555908203125 4; stroke-dashoffset: 0;;" data-edge="true" data-et="edge" data-id="L_SIGNAL_CENP_0" data-points="W3sieCI6NDAxLjc5Njg3NSwieSI6MzEzMC4zMzMyNTA5OTk0NTA3fSx7IngiOjQwMS43OTY4NzUsInkiOjMxNTZ9LHsieCI6NDAxLjc5Njg3NSwieSI6MzE3Nn0seyJ4IjozMzMsInkiOjMxNzZ9LHsieCI6MzMzLCJ5IjozMjYwfV0=" data-look="neo" marker-end="url(#mermaid-1791740649238_flowchart-v2-pointEnd-margin)"></path><path d="M333,3332L333,3368" id="mermaid-1791740649238-L_CENP_CSA_0" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style="stroke-dasharray: 0 0 32 4; stroke-dashoffset: 0;;" data-edge="true" data-et="edge" data-id="L_CENP_CSA_0" data-points="W3sieCI6MzMzLCJ5IjozMzMyfSx7IngiOjMzMywieSI6MzM3Mn1d" data-look="neo" marker-end="url(#mermaid-1791740649238_flowchart-v2-pointEnd-margin)"></path><path d="M333,3444L333,3480" id="mermaid-1791740649238-L_CSA_LEV_0" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style="stroke-dasharray: 0 0 32 4; stroke-dashoffset: 0;;" data-edge="true" data-et="edge" data-id="L_CSA_LEV_0" data-points="W3sieCI6MzMzLCJ5IjozNDQ0fSx7IngiOjMzMywieSI6MzQ4NH1d" data-look="neo" marker-end="url(#mermaid-1791740649238_flowchart-v2-pointEnd-margin)"></path><path d="M333,3532L333,3568" id="mermaid-1791740649238-L_LEV_CTE_ENTRY_0" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style="stroke-dasharray: 0 0 32 4; stroke-dashoffset: 0;;" data-edge="true" data-et="edge" data-id="L_LEV_CTE_ENTRY_0" data-points="W3sieCI6MzMzLCJ5IjozNTMyfSx7IngiOjMzMywieSI6MzU3Mn1d" data-look="neo" marker-end="url(#mermaid-1791740649238_flowchart-v2-pointEnd-margin)"></path><path d="M311,3644L311,3656.9289321881347Q311,3664 303.9289321881345,3664L292.0710678118655,3664Q285,3664 285,3671.0710678118653L285,3744" id="mermaid-1791740649238-L_CTE_ENTRY_PLACE_ENTRY_0" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style="stroke-dasharray: 0 0 116.67192840576172 4; stroke-dashoffset: 0;;" data-edge="true" data-et="edge" data-id="L_CTE_ENTRY_PLACE_ENTRY_0" data-points="W3sieCI6MzExLCJ5IjozNjQ0fSx7IngiOjMxMSwieSI6MzY2NH0seyJ4IjoyODUsInkiOjM2NjR9LHsieCI6Mjg1LCJ5IjozNzQ4fV0=" data-look="neo" marker-end="url(#mermaid-1791740649238_flowchart-v2-pointEnd-margin)"></path><path d="M355,3644L355,3656.9289321881347Q355,3664 362.0710678118655,3664L373.9289321881345,3664Q381,3664 381,3671.0710678118653L381,3784L381,3836.4098958333334Q381,3840 384.5901041666667,3840L384.5901041666667,3840Q388.1802083333334,3840 388.1802083333334,3843.5901041666666L388.1802083333334,3876" id="mermaid-1791740649238-L_CTE_ENTRY_DONE_0" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style="stroke-dasharray: 0 0 253.14739990234375 4; stroke-dashoffset: 0;;" data-edge="true" data-et="edge" data-id="L_CTE_ENTRY_DONE_0" data-points="W3sieCI6MzU1LCJ5IjozNjQ0fSx7IngiOjM1NSwieSI6MzY2NH0seyJ4IjozODEsInkiOjM2NjR9LHsieCI6MzgxLCJ5IjozNzg0fSx7IngiOjM4MSwieSI6Mzg0MH0seyJ4IjozODguMTgwMjA4MzMzMzMzNCwieSI6Mzg0MH0seyJ4IjozODguMTgwMjA4MzMzMzMzNCwieSI6Mzg4MH1d" data-look="neo" marker-end="url(#mermaid-1791740649238_flowchart-v2-pointEnd-margin)"></path><path d="M453.1302083333333,3130.3332509994507L453.1302083333333,3156L453.1302083333333,3173.2174479166665Q453.1302083333333,3176 455.91276041666663,3176L455.91276041666663,3176Q458.6953125,3176 458.6953125,3178.7825520833335L458.6953125,3208L458.6953125,3296L458.6953125,3408L458.6953125,3608L458.6953125,3696L458.6953125,3784L458.6953125,3832.9289321881347Q458.6953125,3840 451.6242446881345,3840L421.65127614519884,3840Q414.58020833333336,3840 414.58020833333336,3847.0710678118653L414.58020833333336,3876" id="mermaid-1791740649238-L_SIGNAL_DONE_0" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style="stroke-dasharray: 0 0 783.9220581054688 4; stroke-dashoffset: 0;;" data-edge="true" data-et="edge" data-id="L_SIGNAL_DONE_0" data-points="W3sieCI6NDUzLjEzMDIwODMzMzMzMzMsInkiOjMxMzAuMzMzMjUwOTk5NDUwN30seyJ4Ijo0NTMuMTMwMjA4MzMzMzMzMywieSI6MzE1Nn0seyJ4Ijo0NTMuMTMwMjA4MzMzMzMzMywieSI6MzE3Nn0seyJ4Ijo0NTguNjk1MzEyNSwieSI6MzE3Nn0seyJ4Ijo0NTguNjk1MzEyNSwieSI6MzIwOH0seyJ4Ijo0NTguNjk1MzEyNSwieSI6MzI5Nn0seyJ4Ijo0NTguNjk1MzEyNSwieSI6MzQwOH0seyJ4Ijo0NTguNjk1MzEyNSwieSI6MzYwOH0seyJ4Ijo0NTguNjk1MzEyNSwieSI6MzY5Nn0seyJ4Ijo0NTguNjk1MzEyNSwieSI6Mzc4NH0seyJ4Ijo0NTguNjk1MzEyNSwieSI6Mzg0MH0seyJ4Ijo0MTQuNTgwMjA4MzMzMzMzMzYsInkiOjM4NDB9LHsieCI6NDE0LjU4MDIwODMzMzMzMzM2LCJ5IjozODgwfV0=" data-look="neo" marker-end="url(#mermaid-1791740649238_flowchart-v2-pointEnd-margin)"></path><path d="M88,2368L88,2507L88,2666L88,2754L88,2906L88,3069L88,3208L88,3296L88,3408L88,3508L88,3608L88,3696L88,3784L88,3852.9289321881347Q88,3860 95.07106781186548,3860L328.3091405214679,3860Q335.38020833333337,3860 335.38020833333337,3867.0710678118653L335.38020833333337,3876" id="mermaid-1791740649238-L_PLACE_EXIT_DONE_0" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style="stroke-dasharray: 0 0 1746.0521240234375 4; stroke-dashoffset: 0;;" data-edge="true" data-et="edge" data-id="L_PLACE_EXIT_DONE_0" data-points="W3sieCI6ODgsInkiOjIzNjh9LHsieCI6ODgsInkiOjI1MDd9LHsieCI6ODgsInkiOjI2NjZ9LHsieCI6ODgsInkiOjI3NTR9LHsieCI6ODgsInkiOjI5MDZ9LHsieCI6ODgsInkiOjMwNjl9LHsieCI6ODgsInkiOjMyMDh9LHsieCI6ODgsInkiOjMyOTZ9LHsieCI6ODgsInkiOjM0MDh9LHsieCI6ODgsInkiOjM1MDh9LHsieCI6ODgsInkiOjM2MDh9LHsieCI6ODgsInkiOjM2OTZ9LHsieCI6ODgsInkiOjM3ODR9LHsieCI6ODgsInkiOjM4NjB9LHsieCI6MzM1LjM4MDIwODMzMzMzMzM3LCJ5IjozODYwfSx7IngiOjMzNS4zODAyMDgzMzMzMzMzNywieSI6Mzg4MH1d" data-look="neo" marker-end="url(#mermaid-1791740649238_flowchart-v2-pointEnd-margin)"></path><path d="M285,3820L285,3832.9289321881347Q285,3840 292.0710678118655,3840L354.70914052146793,3840Q361.7802083333334,3840 361.7802083333334,3847.0710678118653L361.7802083333334,3876" id="mermaid-1791740649238-L_PLACE_ENTRY_DONE_0" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style="stroke-dasharray: 0 0 123.45213317871094 4; stroke-dashoffset: 0;;" data-edge="true" data-et="edge" data-id="L_PLACE_ENTRY_DONE_0" data-points="W3sieCI6Mjg1LCJ5IjozODIwfSx7IngiOjI4NSwieSI6Mzg0MH0seyJ4IjozNjEuNzgwMjA4MzMzMzMzNCwieSI6Mzg0MH0seyJ4IjozNjEuNzgwMjA4MzMzMzMzNCwieSI6Mzg4MH1d" data-look="neo" marker-end="url(#mermaid-1791740649238_flowchart-v2-pointEnd-margin)"></path></g><g class="edgeLabels"><g class="edgeLabel" transform="translate(275.078125, 438)"><g class="label" data-id="L_NEW_CANDLE_PI_0" transform="translate(-11.328125, -12)"><foreignObject width="22.65625" height="24"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel"><p>Yes</p></span></div></foreignObject></g></g><g class="edgeLabel" transform="translate(467.1484375, 438)"><g class="label" data-id="L_NEW_CANDLE_SKIP_ANALYSIS_0" transform="translate(-9.3984375, -12)"><foreignObject width="18.796875" height="24"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel"><p>No</p></span></div></foreignObject></g></g><g class="edgeLabel" transform="translate(311.578125, 1188)"><g class="label" data-id="L_OPEN_TRADES_CSL_0" transform="translate(-11.328125, -12)"><foreignObject width="22.65625" height="24"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel"><p>Yes</p></span></div></foreignObject></g></g><g class="edgeLabel" transform="translate(248.828125, 1690)"><g class="label" data-id="L_EXIT_COND_CEP_0" transform="translate(-11.328125, -12)"><foreignObject width="22.65625" height="24"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel"><p>Yes</p></span></div></foreignObject></g></g><g class="edgeLabel" transform="translate(87.7578125, 2117)"><g class="label" data-id="L_CTE_EXIT_PLACE_EXIT_0" transform="translate(-37.2578125, -12)"><foreignObject width="74.515625" height="24"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel"><p>Confirmed</p></span></div></foreignObject></g></g><g class="edgeLabel" transform="translate(350.24218750000006, 1978)"><g class="label" data-id="L_CTE_EXIT_DCA_CHECK_0" transform="translate(-31.9453125, -12)"><foreignObject width="63.890625" height="24"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel"><p>Rejected</p></span></div></foreignObject></g></g><g class="edgeLabel" transform="translate(453.69531250000006, 1778)"><g class="label" data-id="L_EXIT_COND_DCA_CHECK_0" transform="translate(-9.3984375, -12)"><foreignObject width="18.796875" height="24"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel"><p>No</p></span></div></foreignObject></g></g><g class="edgeLabel" transform="translate(328.328125, 2256)"><g class="label" data-id="L_DCA_CHECK_ATP_0" transform="translate(-11.328125, -12)"><foreignObject width="22.65625" height="24"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel"><p>Yes</p></span></div></foreignObject></g></g><g class="edgeLabel" transform="translate(186.63802083333334, 2666)"><g class="label" data-id="L_DCA_RESULT_INCREASE_0" transform="translate(-10.8046875, -12)"><foreignObject width="21.609375" height="24"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel"><p>&gt; 0</p></span></div></foreignObject></g></g><g class="edgeLabel" transform="translate(378.6380208333333, 2666)"><g class="label" data-id="L_DCA_RESULT_DECREASE_0" transform="translate(-10.8046875, -12)"><foreignObject width="21.609375" height="24"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel"><p>&lt; 0</p></span></div></foreignObject></g></g><g class="edgeLabel" transform="translate(475.8333333333333, 2666)"><g class="label" data-id="L_DCA_RESULT_ENTRY_CHECK_0" transform="translate(-18.1328125, -12)"><foreignObject width="36.265625" height="24"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel"><p>None</p></span></div></foreignObject></g></g><g class="edgeLabel" transform="translate(515.2317708333333, 2507)"><g class="label" data-id="L_DCA_CHECK_ENTRY_CHECK_0" transform="translate(-9.3984375, -12)"><foreignObject width="18.796875" height="24"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel"><p>No</p></span></div></foreignObject></g></g><g class="edgeLabel" transform="translate(574.546875, 1890)"><g class="label" data-id="L_OPEN_TRADES_ENTRY_CHECK_0" transform="translate(-9.3984375, -12)"><foreignObject width="18.796875" height="24"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel"><p>No</p></span></div></foreignObject></g></g><g class="edgeLabel" transform="translate(332.828125, 3208)"><g class="label" data-id="L_SIGNAL_CENP_0" transform="translate(-11.328125, -12)"><foreignObject width="22.65625" height="24"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel"><p>Yes</p></span></div></foreignObject></g></g><g class="edgeLabel" transform="translate(284.7578125, 3696)"><g class="label" data-id="L_CTE_ENTRY_PLACE_ENTRY_0" transform="translate(-37.2578125, -12)"><foreignObject width="74.515625" height="24"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel"><p>Confirmed</p></span></div></foreignObject></g></g><g class="edgeLabel" transform="translate(380.9453125, 3696)"><g class="label" data-id="L_CTE_ENTRY_DONE_0" transform="translate(-31.9453125, -12)"><foreignObject width="63.890625" height="24"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel"><p>Rejected</p></span></div></foreignObject></g></g><g class="edgeLabel" transform="translate(458.59375, 3508)"><g class="label" data-id="L_SIGNAL_DONE_0" transform="translate(-9.3984375, -12)"><foreignObject width="18.796875" height="24"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel"><p>No</p></span></div></foreignObject></g></g></g><g class="nodes"><g class="node default" id="mermaid-1791740649238-flowchart-TICK-0" data-look="neo" transform="translate(371.25, 48)"><rect class="basic label-container" style="" x="-76" y="-36" width="152" height="72"></rect><g class="label" style="" transform="translate(-60, -24)"><rect></rect><foreignObject width="120" height="48"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 120px; text-align: center; width: 120px;"><span class="nodeLabel"><p>Bot Iteration Start</p></span></div></foreignObject></g></g><g class="node default" id="mermaid-1791740649238-flowchart-BLS-1" data-look="neo" transform="translate(371.25, 148)"><rect class="basic label-container" style="" x="-76" y="-24" width="152" height="48"></rect><g class="label" style="" transform="translate(-60, -12)"><rect></rect><foreignObject width="120" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: nowrap; line-height: 1.5; max-width: 120px; text-align: center; width: 120px;"><span class="nodeLabel"><p>bot_loop_start</p></span></div></foreignObject></g></g><g class="node default" id="mermaid-1791740649238-flowchart-NEW_CANDLE-3" data-look="neo" transform="translate(371.25, 299)"><polygon points="87,0 174,-87 87,-174 0,-87" class="label-container" transform="translate(-86.5, 87)"></polygon><g class="label" style="" transform="translate(-60, -12)"><rect></rect><foreignObject width="120" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: nowrap; line-height: 1.5; max-width: 120px; text-align: center; width: 120px;"><span class="nodeLabel"><p>New Candle?</p></span></div></foreignObject></g></g><g class="node default" id="mermaid-1791740649238-flowchart-PI-5" data-look="neo" transform="translate(275.25, 526)"><rect class="basic label-container" style="" x="-76" y="-36" width="152" height="72"></rect><g class="label" style="" transform="translate(-60, -24)"><rect></rect><foreignObject width="120" height="48"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 120px; text-align: center; width: 120px;"><span class="nodeLabel"><p>populate_indicators</p></span></div></foreignObject></g></g><g class="node default" id="mermaid-1791740649238-flowchart-SKIP_ANALYSIS-7" data-look="neo" transform="translate(467.25, 638)"><rect class="basic label-container" style="" x="-76" y="-36" width="152" height="72"></rect><g class="label" style="" transform="translate(-60, -24)"><rect></rect><foreignObject width="120" height="48"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 120px; text-align: center; width: 120px;"><span class="nodeLabel"><p>Use cached analysis</p></span></div></foreignObject></g></g><g class="node default" id="mermaid-1791740649238-flowchart-PET-9" data-look="neo" transform="translate(275.25, 638)"><rect class="basic label-container" style="" x="-76" y="-36" width="152" height="72"></rect><g class="label" style="" transform="translate(-60, -24)"><rect></rect><foreignObject width="120" height="48"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 120px; text-align: center; width: 120px;"><span class="nodeLabel"><p>populate_entry_trend</p></span></div></foreignObject></g></g><g class="node default" id="mermaid-1791740649238-flowchart-PXT-11" data-look="neo" transform="translate(275.25, 750)"><rect class="basic label-container" style="" x="-76" y="-36" width="152" height="72"></rect><g class="label" style="" transform="translate(-60, -24)"><rect></rect><foreignObject width="120" height="48"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 120px; text-align: center; width: 120px;"><span class="nodeLabel"><p>populate_exit_trend</p></span></div></foreignObject></g></g><g class="node default" id="mermaid-1791740649238-flowchart-ANALYZED-13" data-look="neo" transform="translate(371.25, 874)"><rect class="basic label-container" style="" x="-76" y="-48" width="152" height="96"></rect><g class="label" style="" transform="translate(-60, -36)"><rect></rect><foreignObject width="120" height="72"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 120px; text-align: center; width: 120px;"><span class="nodeLabel"><p>Analyzed DataFrame cached</p></span></div></foreignObject></g></g><g class="node default" id="mermaid-1791740649238-flowchart-OPEN_TRADES-17" data-look="neo" transform="translate(371.25, 1049)"><polygon points="87,0 174,-87 87,-174 0,-87" class="label-container" transform="translate(-86.5, 87)"></polygon><g class="label" style="" transform="translate(-60, -12)"><rect></rect><foreignObject width="120" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: nowrap; line-height: 1.5; max-width: 120px; text-align: center; width: 120px;"><span class="nodeLabel"><p>Open Trades?</p></span></div></foreignObject></g></g><g class="node default" id="mermaid-1791740649238-flowchart-CSL-19" data-look="neo" transform="translate(311.75, 1264)"><rect class="basic label-container" style="" x="-76" y="-24" width="152" height="48"></rect><g class="label" style="" transform="translate(-60, -12)"><rect></rect><foreignObject width="120" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: nowrap; line-height: 1.5; max-width: 120px; text-align: center; width: 120px;"><span class="nodeLabel"><p>custom_stoploss</p></span></div></foreignObject></g></g><g class="node default" id="mermaid-1791740649238-flowchart-SE-21" data-look="neo" transform="translate(311.75, 1364)"><rect class="basic label-container" style="" x="-76" y="-36" width="152" height="72"></rect><g class="label" style="" transform="translate(-60, -24)"><rect></rect><foreignObject width="120" height="48"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 120px; text-align: center; width: 120px;"><span class="nodeLabel"><p>should_exit / custom_exit</p></span></div></foreignObject></g></g><g class="node default" id="mermaid-1791740649238-flowchart-EXIT_COND-23" data-look="neo" transform="translate(311.75, 1539)"><polygon points="99,0 198,-99 99,-198 0,-99" class="label-container" transform="translate(-98.5, 99)"></polygon><g class="label" style="" transform="translate(-60, -24)"><rect></rect><foreignObject width="120" height="48"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 120px; text-align: center; width: 120px;"><span class="nodeLabel"><p>Exit Condition Met?</p></span></div></foreignObject></g></g><g class="node default" id="mermaid-1791740649238-flowchart-CEP-25" data-look="neo" transform="translate(249, 1778)"><rect class="basic label-container" style="" x="-76" y="-36" width="152" height="72"></rect><g class="label" style="" transform="translate(-60, -24)"><rect></rect><foreignObject width="120" height="48"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 120px; text-align: center; width: 120px;"><span class="nodeLabel"><p>custom_exit_price</p></span></div></foreignObject></g></g><g class="node default" id="mermaid-1791740649238-flowchart-CTE_EXIT-27" data-look="neo" transform="translate(249, 1890)"><rect class="basic label-container" style="" x="-76" y="-36" width="152" height="72"></rect><g class="label" style="" transform="translate(-60, -24)"><rect></rect><foreignObject width="120" height="48"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 120px; text-align: center; width: 120px;"><span class="nodeLabel"><p>confirm_trade_exit</p></span></div></foreignObject></g></g><g class="node default" id="mermaid-1791740649238-flowchart-PLACE_EXIT-29" data-look="neo" transform="translate(88, 2344)"><rect class="basic label-container" style="" x="-76" y="-24" width="152" height="48"></rect><g class="label" style="" transform="translate(-60, -12)"><rect></rect><foreignObject width="120" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: nowrap; line-height: 1.5; max-width: 120px; text-align: center; width: 120px;"><span class="nodeLabel"><p>Place Exit Order</p></span></div></foreignObject></g></g><g class="node default" id="mermaid-1791740649238-flowchart-DCA_CHECK-31" data-look="neo" transform="translate(428.1302083333334, 2117)"><polygon points="87,0 174,-87 87,-174 0,-87" class="label-container" transform="translate(-86.5, 87)"></polygon><g class="label" style="" transform="translate(-60, -12)"><rect></rect><foreignObject width="120" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: nowrap; line-height: 1.5; max-width: 120px; text-align: center; width: 120px;"><span class="nodeLabel"><p>DCA Enabled?</p></span></div></foreignObject></g></g><g class="node default" id="mermaid-1791740649238-flowchart-ATP-36" data-look="neo" transform="translate(328.5, 2344)"><rect class="basic label-container" style="" x="-76" y="-36" width="152" height="72"></rect><g class="label" style="" transform="translate(-60, -24)"><rect></rect><foreignObject width="120" height="48"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 120px; text-align: center; width: 120px;"><span class="nodeLabel"><p>adjust_trade_position</p></span></div></foreignObject></g></g><g class="node default" id="mermaid-1791740649238-flowchart-DCA_RESULT-38" data-look="neo" transform="translate(328.5, 2507)"><polygon points="87,0 174,-87 87,-174 0,-87" class="label-container" transform="translate(-86.5, 87)"></polygon><g class="label" style="" transform="translate(-60, -12)"><rect></rect><foreignObject width="120" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: nowrap; line-height: 1.5; max-width: 120px; text-align: center; width: 120px;"><span class="nodeLabel"><p>Stake Amount?</p></span></div></foreignObject></g></g><g class="node default" id="mermaid-1791740649238-flowchart-INCREASE-40" data-look="neo" transform="translate(186.83333333333334, 2754)"><rect class="basic label-container" style="" x="-76" y="-24" width="152" height="48"></rect><g class="label" style="" transform="translate(-60, -12)"><rect></rect><foreignObject width="120" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: nowrap; line-height: 1.5; max-width: 120px; text-align: center; width: 120px;"><span class="nodeLabel"><p>Place DCA Entry</p></span></div></foreignObject></g></g><g class="node default" id="mermaid-1791740649238-flowchart-DECREASE-42" data-look="neo" transform="translate(378.83333333333337, 2754)"><rect class="basic label-container" style="" x="-76" y="-36" width="152" height="72"></rect><g class="label" style="" transform="translate(-60, -24)"><rect></rect><foreignObject width="120" height="48"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 120px; text-align: center; width: 120px;"><span class="nodeLabel"><p>Place Partial Exit</p></span></div></foreignObject></g></g><g class="node default" id="mermaid-1791740649238-flowchart-ENTRY_CHECK-44" data-look="neo" transform="translate(427.4635416666667, 2906)"><rect class="basic label-container" style="" x="-76" y="-36" width="152" height="72"></rect><g class="label" style="" transform="translate(-60, -24)"><rect></rect><foreignObject width="120" height="48"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 120px; text-align: center; width: 120px;"><span class="nodeLabel"><p>Check Entry Signals</p></span></div></foreignObject></g></g><g class="node default" id="mermaid-1791740649238-flowchart-SIGNAL-54" data-look="neo" transform="translate(427.4635416666667, 3069)"><polygon points="87,0 174,-87 87,-174 0,-87" class="label-container" transform="translate(-86.5, 87)"></polygon><g class="label" style="" transform="translate(-60, -12)"><rect></rect><foreignObject width="120" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: nowrap; line-height: 1.5; max-width: 120px; text-align: center; width: 120px;"><span class="nodeLabel"><p>Entry Signal?</p></span></div></foreignObject></g></g><g class="node default" id="mermaid-1791740649238-flowchart-CENP-56" data-look="neo" transform="translate(333, 3296)"><rect class="basic label-container" style="" x="-76" y="-36" width="152" height="72"></rect><g class="label" style="" transform="translate(-60, -24)"><rect></rect><foreignObject width="120" height="48"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 120px; text-align: center; width: 120px;"><span class="nodeLabel"><p>custom_entry_price</p></span></div></foreignObject></g></g><g class="node default" id="mermaid-1791740649238-flowchart-CSA-58" data-look="neo" transform="translate(333, 3408)"><rect class="basic label-container" style="" x="-76" y="-36" width="152" height="72"></rect><g class="label" style="" transform="translate(-60, -24)"><rect></rect><foreignObject width="120" height="48"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 120px; text-align: center; width: 120px;"><span class="nodeLabel"><p>custom_stake_amount</p></span></div></foreignObject></g></g><g class="node default" id="mermaid-1791740649238-flowchart-LEV-60" data-look="neo" transform="translate(333, 3508)"><rect class="basic label-container" style="" x="-76" y="-24" width="152" height="48"></rect><g class="label" style="" transform="translate(-60, -12)"><rect></rect><foreignObject width="120" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: nowrap; line-height: 1.5; max-width: 120px; text-align: center; width: 120px;"><span class="nodeLabel"><p>leverage</p></span></div></foreignObject></g></g><g class="node default" id="mermaid-1791740649238-flowchart-CTE_ENTRY-62" data-look="neo" transform="translate(333, 3608)"><rect class="basic label-container" style="" x="-76" y="-36" width="152" height="72"></rect><g class="label" style="" transform="translate(-60, -24)"><rect></rect><foreignObject width="120" height="48"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 120px; text-align: center; width: 120px;"><span class="nodeLabel"><p>confirm_trade_entry</p></span></div></foreignObject></g></g><g class="node default" id="mermaid-1791740649238-flowchart-PLACE_ENTRY-64" data-look="neo" transform="translate(285, 3784)"><rect class="basic label-container" style="" x="-76" y="-36" width="152" height="72"></rect><g class="label" style="" transform="translate(-60, -24)"><rect></rect><foreignObject width="120" height="48"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 120px; text-align: center; width: 120px;"><span class="nodeLabel"><p>Place Entry Order</p></span></div></foreignObject></g></g><g class="node default" id="mermaid-1791740649238-flowchart-DONE-66" data-look="neo" transform="translate(374.9802083333334, 3916)"><rect class="basic label-container" style="" x="-76" y="-36" width="152" height="72"></rect><g class="label" style="" transform="translate(-60, -24)"><rect></rect><foreignObject width="120" height="48"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 120px; text-align: center; width: 120px;"><span class="nodeLabel"><p>Iteration Complete</p></span></div></foreignObject></g></g></g></g></g><defs><filter id="mermaid-1791740649238-drop-shadow" height="130%" width="130%"><feDropShadow dx="4" dy="4" stdDeviation="0" flood-opacity="0.06" flood-color="#000000"></feDropShadow></filter></defs><defs><filter id="mermaid-1791740649238-drop-shadow-small" height="150%" width="150%"><feDropShadow dx="2" dy="2" stdDeviation="0" flood-opacity="0.06" flood-color="#000000"></feDropShadow></filter></defs></svg></pre><details><summary>Diagram source</summary><pre><code>flowchart TD
+    TICK[Bot Iteration Start] --&gt; BLS[bot_loop_start]
+    BLS --&gt; NEW_CANDLE{New Candle?}
+    NEW_CANDLE --&gt;|Yes| PI[populate_indicators]
+    NEW_CANDLE --&gt;|No| SKIP_ANALYSIS[Use cached analysis]
+    PI --&gt; PET[populate_entry_trend]
+    PET --&gt; PXT[populate_exit_trend]
+    PXT --&gt; ANALYZED[Analyzed DataFrame cached]
+    SKIP_ANALYSIS --&gt; ANALYZED
+
+    ANALYZED --&gt; OPEN_TRADES{Open Trades?}
+    OPEN_TRADES --&gt;|Yes| CSL[custom_stoploss]
+    CSL --&gt; SE[should_exit / custom_exit]
+    SE --&gt; EXIT_COND{Exit Condition Met?}
+    EXIT_COND --&gt;|Yes| CEP[custom_exit_price]
+    CEP --&gt; CTE_EXIT[confirm_trade_exit]
+    CTE_EXIT --&gt;|Confirmed| PLACE_EXIT[Place Exit Order]
+    CTE_EXIT --&gt;|Rejected| DCA_CHECK
+    EXIT_COND --&gt;|No| DCA_CHECK
+
+    DCA_CHECK{DCA Enabled?}
+    DCA_CHECK --&gt;|Yes| ATP[adjust_trade_position]
+    ATP --&gt; DCA_RESULT{Stake Amount?}
+    DCA_RESULT --&gt;|&gt; 0| INCREASE[Place DCA Entry]
+    DCA_RESULT --&gt;|&lt; 0| DECREASE[Place Partial Exit]
+    DCA_RESULT --&gt;|None| ENTRY_CHECK
+    INCREASE --&gt; ENTRY_CHECK
+    DECREASE --&gt; ENTRY_CHECK
+    DCA_CHECK --&gt;|No| ENTRY_CHECK
+
+    OPEN_TRADES --&gt;|No| ENTRY_CHECK
+
+    ENTRY_CHECK[Check Entry Signals] --&gt; SIGNAL{Entry Signal?}
+    SIGNAL --&gt;|Yes| CENP[custom_entry_price]
+    CENP --&gt; CSA[custom_stake_amount]
+    CSA --&gt; LEV[leverage]
+    LEV --&gt; CTE_ENTRY[confirm_trade_entry]
+    CTE_ENTRY --&gt;|Confirmed| PLACE_ENTRY[Place Entry Order]
+    CTE_ENTRY --&gt;|Rejected| DONE
+    SIGNAL --&gt;|No| DONE
+    PLACE_EXIT --&gt; DONE
+    PLACE_ENTRY --&gt; DONE[Iteration Complete]</code></pre></details></div>
+
+<h2 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">¶</a></h2>
+<h3 id="1-importerror-libta_libso-cannot-open-shared-object-file">1. <code>ImportError: libta_lib.so: cannot open shared object file</code><a class="headerlink" href="#1-importerror-libta_libso-cannot-open-shared-object-file" title="Permanent link">¶</a></h3>
+<p>TA-Lib requires the C library to be installed before the Python wrapper:</p>
+<pre><code class="language-bash"># Ubuntu/Debian
+sudo apt-get install -y libta-lib0-dev
+# macOS
+brew install ta-lib
+# Then reinstall the Python wrapper
+pip install --force-reinstall TA-Lib
+</code></pre>
+<h3 id="2-strategy-not-found-strategyresolver-could-not-load-strategy-mystrategy">2. Strategy not found: <code>StrategyResolver: Could not load strategy 'MyStrategy'</code><a class="headerlink" href="#2-strategy-not-found-strategyresolver-could-not-load-strategy-mystrategy" title="Permanent link">¶</a></h3>
+<p>Ensure the strategy file is in <code>user_data/strategies/</code> and the class name matches what you pass to <code>--strategy</code>. The file name does not need to match -- the resolver scans all <code>.py</code> files for the class name.</p>
+<h3 id="3-operationalexception-exchange-binance-does-not-support-required-option">3. <code>OperationalException: Exchange "binance" does not support required option</code><a class="headerlink" href="#3-operationalexception-exchange-binance-does-not-support-required-option" title="Permanent link">¶</a></h3>
+<p>Check that the exchange name is lowercase and matches a supported exchange. For futures trading, ensure <code>trading_mode</code> is set to <code>"futures"</code> and <code>margin_mode</code> is set to <code>"isolated"</code> or <code>"cross"</code> in the config.</p>
+<h3 id="4-backtesting-is-extremely-slow">4. Backtesting is extremely slow<a class="headerlink" href="#4-backtesting-is-extremely-slow" title="Permanent link">¶</a></h3>
+<ul>
+<li>Use Parquet data format instead of JSON: <code>freqtrade convert-data --format-from json --format-to feather</code></li>
+<li>Reduce the pair count or timerange</li>
+<li>Set <code>process_only_new_candles = True</code> in your strategy</li>
+<li>Reduce <code>startup_candle_count</code> to the minimum required by your indicators</li>
+</ul>
+<h3 id="5-dependencyexception-insufficientfundserror-during-dry-run">5. <code>DependencyException: InsufficientFundsError</code> during dry-run<a class="headerlink" href="#5-dependencyexception-insufficientfundserror-during-dry-run" title="Permanent link">¶</a></h3>
+<p>Increase the <code>dry_run_wallet</code> value in your config, or reduce <code>stake_amount</code>. With <code>"stake_amount": "unlimited"</code>, the bot divides the wallet equally among <code>max_open_trades</code>.</p>
+<h3 id="6-hyperopt-finds-no-improvement-after-many-epochs">6. Hyperopt finds no improvement after many epochs<a class="headerlink" href="#6-hyperopt-finds-no-improvement-after-many-epochs" title="Permanent link">¶</a></h3>
+<ul>
+<li>Ensure your parameter ranges (<code>IntParameter</code>, <code>DecimalParameter</code>) are wide enough</li>
+<li>Try a different loss function (e.g., <code>SharpeHyperOptLoss</code> vs <code>MaxDrawDownHyperOptLoss</code>)</li>
+<li>Increase epochs (<code>-e 1000</code> or more)</li>
+<li>Check that parameters are actually used in your entry/exit logic (use <code>.value</code> to read them)</li>
+</ul>
+<h3 id="7-freqai-model-retraining-takes-too-long">7. FreqAI model retraining takes too long<a class="headerlink" href="#7-freqai-model-retraining-takes-too-long" title="Permanent link">¶</a></h3>
+<ul>
+<li>Reduce <code>train_period_days</code> or increase <code>backtest_period_days</code> (retrain less often)</li>
+<li>Use a lighter model (e.g., <code>LightGBMRegressor</code> instead of <code>PyTorchTransformerRegressor</code>)</li>
+<li>Reduce <code>include_timeframes</code> and <code>indicator_periods_candles</code> in feature parameters</li>
+<li>For RL models, reduce training steps and environment complexity</li>
+</ul>
+<h3 id="8-telegram-bot-not-connecting">8. Telegram bot not connecting<a class="headerlink" href="#8-telegram-bot-not-connecting" title="Permanent link">¶</a></h3>
+<ul>
+<li>Verify the bot token with <code>@BotFather</code> on Telegram</li>
+<li>Ensure the <code>chat_id</code> is correct (use <code>@userinfobot</code> to find your chat ID)</li>
+<li>Check that the bot has permission to send messages in the chat</li>
+<li>Firewall/proxy may block outbound HTTPS to <code>api.telegram.org</code></li>
+</ul>
+<h3 id="9-retryableordererror-or-temporaryerror-in-live-trading">9. <code>RetryableOrderError</code> or <code>TemporaryError</code> in live trading<a class="headerlink" href="#9-retryableordererror-or-temporaryerror-in-live-trading" title="Permanent link">¶</a></h3>
+<p>These are transient exchange errors. Freqtrade retries automatically (configured via <code>exchange.ccxt_config.rateLimit</code>). If persistent, check:
+- Exchange API status page for outages
+- Rate limit configuration (increase <code>rateLimit</code> in <code>exchange.ccxt_config</code>)
+- Network connectivity and proxy settings</p>
+<h3 id="10-database-locked-or-corrupt-after-crash">10. Database locked or corrupt after crash<a class="headerlink" href="#10-database-locked-or-corrupt-after-crash" title="Permanent link">¶</a></h3>
+<p>SQLite may lock if the bot crashes mid-transaction. Fix with:</p>
+<pre><code class="language-bash"># Backup first
+cp tradesv3.sqlite tradesv3.sqlite.bak
+# Verify integrity
+sqlite3 tradesv3.sqlite "PRAGMA integrity_check;"
+# If corrupt, export and reimport
+sqlite3 tradesv3.sqlite ".dump" | sqlite3 tradesv3_fixed.sqlite
+</code></pre>
+<h2 id="security-considerations">Security Considerations<a class="headerlink" href="#security-considerations" title="Permanent link">¶</a></h2>
+<ul>
+<li><strong>API key storage</strong>: Exchange API keys are stored in the JSON config file. Restrict file permissions (<code>chmod 600 config.json</code>) and never commit config files to version control. Use environment variables or Docker secrets for production deployments.</li>
+<li><strong>API key permissions</strong>: Configure exchange API keys with the minimum required permissions. For dry-run and backtesting, no API keys are needed. For live trading, enable only <code>trade</code> and <code>read</code> permissions -- never enable <code>withdraw</code>.</li>
+<li><strong>Webhook security</strong>: Webhook URLs may contain sensitive tokens. Ensure webhook endpoints use HTTPS. The <code>webhookentry</code>, <code>webhookexit</code>, and <code>webhookstatus</code> config fields can expose order details.</li>
+<li><strong>REST API authentication</strong>: The API server uses JWT tokens. Change the default <code>api_server.username</code> and <code>api_server.password</code>. In production, run the API server behind a reverse proxy with TLS.</li>
+<li><strong>Telegram chat security</strong>: The Telegram bot accepts commands from any user in the configured <code>chat_id</code>. Use a private chat or group with restricted membership. Enable <code>telegram.allow_custom_value_changes = false</code> to prevent parameter changes via Telegram.</li>
+<li><strong>FreqAI model files</strong>: Trained models are serialized with pickle/joblib. Only load models from trusted sources, as deserialization can execute arbitrary code.</li>
+<li><strong>Database exposure</strong>: The SQLite database (<code>tradesv3.sqlite</code>) contains complete trade history including profits, pairs, and timestamps. Protect it with filesystem permissions.</li>
+<li><strong>Docker deployment</strong>: The official Docker image runs as a non-root user. Mount config files as read-only volumes. Do not expose the API server port without authentication and TLS.</li>
+<li><strong>Dependency chain</strong>: Freqtrade depends on CCXT, which makes network calls to exchanges. Pin CCXT versions and review changelogs for security patches. Use <code>pip install --require-hashes</code> for production installs.</li>
+<li><strong>Rate limiting</strong>: Aggressive polling can trigger exchange IP bans. Respect the <code>exchange.ccxt_config.rateLimit</code> setting and avoid reducing throttle times below exchange recommendations.</li>
+</ul>
+<hr>
+<h2 id="see-also">See Also<a class="headerlink" href="#see-also" title="Permanent link">¶</a></h2>
+<ul>
+<li><a href="README.md">README</a> — Project overview and quick start</li>
+<li><a href="architecture.md">Architecture</a> — System design and components</li>
+<li><a href="workflow.md">Workflow</a> — Event flows and processing pipelines</li>
+<li><a href="state-management.md">State Management</a> — State lifecycle and data models</li>
+</ul>
+<h2 id="uv-maintenance-workflow-2026-10-12">uv maintenance workflow (2026-10-12)<a class="headerlink" href="#uv-maintenance-workflow-2026-10-12" title="Permanent link">¶</a></h2>
+<p>Selected complete environment: Python 3.14.8; build backend <code>hatchling.build</code>. The workspace uses uv 0.13.0. Python 3.15 was attempted before any fallback; the actual failure and selected runtime are recorded in <a href="validation.md">validation</a>.</p>
+<pre><code class="language-sh">export UV_PYTHON_PREFERENCE=only-managed
+uv python install 3.14.8
+uv lock --upgrade
+uv sync --all-extras --python 3.14.8
+uv build --python 3.14.8
+uv run --frozen --all-extras python -m compileall -q src/freqtrade
+uv run --frozen --all-extras python -m pytest tests
+</code></pre>
+<p>Keep source resources inside their package and preserve the repository's existing src layout. Rebuild after source/native/asset changes. Use the locked environment for final verification. Commands above are the standard workflow, not a promise that every existing suite currently passes; consult validation for exact outcomes and unresolved compatibility issues.</p></main>
+<div class="mermaidTooltip" style="opacity: 0; position: absolute; text-align: center; max-width: 200px; padding: 2px; font-size: 12px; background: rgb(255, 255, 222); border: 1px solid rgb(51, 51, 51); border-radius: 2px; pointer-events: none; z-index: 100;"></div></body></html>
