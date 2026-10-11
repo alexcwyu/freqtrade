@@ -1,4 +1,5 @@
 # pragma pylint: disable=missing-docstring
+import asyncio
 import json
 import logging
 import platform
@@ -12,6 +13,8 @@ import numpy as np
 import pandas as pd
 import pytest
 from xdist.scheduler.loadscope import LoadScopeScheduling
+from sqlalchemy.engine import Engine
+from sqlalchemy.orm import Session
 
 from freqtrade import constants
 from freqtrade.commands import Arguments
@@ -480,6 +483,52 @@ def create_mock_trades_usdt(fee, is_short: bool | None = False, use_db: bool = T
 
 
 @pytest.fixture(autouse=True)
+def close_test_exchanges(monkeypatch):
+    """Release exchanges, event loops and file handlers before removing test mocks."""
+    exchanges = []
+    loops = []
+    handlers = []
+    original_new_loop = asyncio.events.new_event_loop
+    original_handler_init = logging.FileHandler.__init__
+
+    def tracked_new_loop():
+        loop = original_new_loop()
+        loops.append(loop)
+        return loop
+
+    def tracked_handler_init(self, *args, **kwargs):
+        original_handler_init(self, *args, **kwargs)
+        handlers.append(self)
+
+    monkeypatch.setattr(asyncio, "new_event_loop", tracked_new_loop)
+    monkeypatch.setattr(asyncio.events, "new_event_loop", tracked_new_loop)
+    monkeypatch.setattr(logging.FileHandler, "__init__", tracked_handler_init)
+    original_init = Exchange.__init__
+
+    def tracked_init(self, *args, **kwargs):
+        exchanges.append(self)
+        original_init(self, *args, **kwargs)
+
+    monkeypatch.setattr(Exchange, "__init__", tracked_init)
+    yield
+    for exchange in reversed(exchanges):
+        if getattr(exchange, "loop", None) is not None:
+            exchange.close()
+    for handler in handlers:
+        handler.close()
+        logging.getLogger().removeHandler(handler)
+    for loop in reversed(loops):
+        if not loop.is_closed() and not loop.is_running():
+            tasks = asyncio.all_tasks(loop)
+            for task in tasks:
+                task.cancel()
+            if tasks:
+                loop.run_until_complete(asyncio.gather(*tasks, return_exceptions=True))
+            loop.run_until_complete(loop.shutdown_asyncgens())
+            loop.close()
+
+
+@pytest.fixture(autouse=True)
 def patch_gc(mocker) -> None:
     mocker.patch("freqtrade.main.gc_set_threshold")
 
@@ -564,18 +613,40 @@ def patch_coingecko(mocker) -> None:
 
 
 @pytest.fixture(autouse=True)
-def dispose_db_engine():
+def dispose_db_engine(monkeypatch):
     """
     Dispose the database engine after each test to release its pooled connection.
     Without this, leaked connections accumulate and are finalized at random points
     by the GC, emitting ResourceWarnings in unrelated tests.
     """
+    engines = []
+    sessions = []
+    session_init = Session.__init__
+    original_init = Engine.__init__
+
+    def tracked_session_init(self, *args, **kwargs):
+        session_init(self, *args, **kwargs)
+        sessions.append(self)
+
+    monkeypatch.setattr(Session, "__init__", tracked_session_init)
+
+    def tracked_init(self, *args, **kwargs):
+        original_init(self, *args, **kwargs)
+        engines.append(self)
+
+    monkeypatch.setattr(Engine, "__init__", tracked_init)
     yield
     if (session := getattr(Trade, "session", None)) is not None:
         bind = session.get_bind()
         session.remove()
         _CustomData.session.remove()
         bind.dispose()
+        Trade.session = None
+        _CustomData.session = None
+    for session in sessions:
+        session.close()
+    for engine in engines:
+        engine.dispose()
 
 
 @pytest.fixture(scope="function")

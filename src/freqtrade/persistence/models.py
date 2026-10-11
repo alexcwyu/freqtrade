@@ -53,6 +53,14 @@ def init_db(db_url: str) -> None:
     :param db_url: Database to use
     :return: None
     """
+    previous_session = getattr(Trade, "session", None)
+    if previous_session is not None:
+        previous_engine = previous_session.get_bind()
+        previous_session.remove()
+        if custom_session := getattr(_CustomData, "session", None):
+            custom_session.remove()
+        previous_engine.dispose()
+
     kwargs: dict[str, Any] = {}
 
     if db_url == "sqlite:///":

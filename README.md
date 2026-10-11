@@ -234,3 +234,5 @@ To run this bot we recommend you a cloud instance with a minimum of:
 - [TA-Lib](https://ta-lib.github.io/ta-lib-python/)
 - [virtualenv](https://virtualenv.pypa.io/en/stable/installation.html) (Recommended)
 - [Docker](https://www.docker.com/products/docker) (Recommended)
+
+Development documentation: [architecture and workflows](docs/ayu-develop.md) ([HTML](docs/ayu-develop.html)), [uv development](docs/development.md), and [validation evidence](docs/validation.md).

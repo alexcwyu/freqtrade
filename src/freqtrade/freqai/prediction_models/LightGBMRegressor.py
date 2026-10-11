@@ -52,7 +52,8 @@ class LightGBMRegressor(BaseRegressionModel):
         model.fit(
             X=X,
             y=y,
-            eval_set=eval_set,
+            eval_X=tuple(x for x, _ in eval_set) if eval_set else None,
+            eval_y=tuple(y for _, y in eval_set) if eval_set else None,
             sample_weight=train_weights,
             eval_sample_weight=[eval_weights],
             init_model=init_model,

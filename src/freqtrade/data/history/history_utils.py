@@ -706,7 +706,10 @@ def download_data_main(config: Config) -> None:
 
     exchange = ExchangeResolver.load_exchange(config, validate=False)
 
-    download_data(config, exchange)
+    try:
+        download_data(config, exchange)
+    finally:
+        exchange.close()
 
 
 def download_data(

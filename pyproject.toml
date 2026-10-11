@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "freqtrade"
-version = "2025.1"
+version = "2026.10.dev0"
 description = "Freqtrade - Crypto Trading Bot"
 readme = "README.md"
 requires-python = ">=3.13"
@@ -26,109 +26,115 @@ classifiers = [
 ]
 
 dependencies = [
-  # from requirements.txt
-  "ccxt>=4.5.76",
-  "SQLAlchemy>=2.0.6",
-  "python-telegram-bot>=20.1",
-  "humanize>=4.0.0",
-  "cachetools",
-  "requests",
-  "httpx>=0.24.1",
-  "urllib3",
-  "certifi>=2026.1.4",
-  "jsonschema",
-  "scipy",
-  "numpy>2.0,<3.0",
-  "pandas>=2.2.0,<4.0",
-  "bottleneck>=1.5.0",
-  "numexpr>=2.14.0",
-  "TA-Lib<0.9",
-  "ft-pandas-ta",
-  "technical",
-  "tabulate",
-  "pycoingecko>=3.2.0",
-  "python-rapidjson",
-  "orjson",
-  "jinja2",
-  "questionary",
-  "prompt-toolkit",
-  "joblib>=1.2.0",
-  "cloudpickle>=3.1.2,<4.0",
-  "rich",
-  'pyarrow; platform_machine != "armv7l"',
-  "fastapi",
-  "pydantic>=2.2.0",
-  "pyjwt",
-  "websockets",
-  "uvicorn",
-  "psutil",
-  "schedule",
-  "janus",
-  "ast-comments",
-  "aiofiles",
-  "aiohttp",
-  "cryptography",
-  "sdnotify",
-  "python-dateutil",
-  "pytz",
-  "packaging",
-  "freqtrade-client",
+    "numpy ; platform_machine != 'armv7l'",
+    "numpy ; platform_machine == 'armv7l'",
+    "pandas",
+    "bottleneck",
+    "numexpr",
+    "scipy",
+    "ft-pandas-ta",
+    "ta-lib",
+    "technical",
+    "ccxt",
+    "cryptography",
+    "aiohttp",
+    "SQLAlchemy",
+    "python-telegram-bot",
+    "httpx",
+    "humanize",
+    "cachetools",
+    "requests",
+    "urllib3",
+    "certifi",
+    "jsonschema",
+    "tabulate",
+    "pycoingecko",
+    "jinja2",
+    "joblib",
+    "cloudpickle",
+    "rich",
+    "pyarrow ; platform_machine != 'armv7l'",
+    "python-rapidjson",
+    "orjson",
+    "sdnotify",
+    "fastapi",
+    "pydantic",
+    "uvicorn",
+    "pyjwt",
+    "aiofiles",
+    "psutil",
+    "questionary",
+    "prompt-toolkit",
+    "python-dateutil",
+    "pytz",
+    "schedule",
+    "websockets",
+    "janus",
+    "ast-comments",
+    "packaging",
+    "freqtrade-client",
 ]
 
 [project.optional-dependencies]
 # Requirements used for submodules
-plot = ["plotly>=4.0"]
+plot = [
+    "plotly",
+]
 hyperopt = [
-  "cmaes",
-  "filelock",
-  "optuna > 4.0.0",
-  "scikit-learn",
+    "scikit-learn",
+    "filelock",
+    "optuna",
+    "cmaes",
 ]
 freqai = [
-  "datasieve>=0.1.5",
-  "joblib",
-  "lightgbm",
-  "scikit-learn",
-  "tensorboard",
-  "xgboost",
+    "scikit-learn",
+    "lightgbm",
+    "xgboost",
+    "tensorboard",
+    "datasieve",
 ]
 freqai_rl = [
-  "gymnasium",
-  "sb3-contrib; sys_platform != 'darwin' or platform_machine != 'x86_64'",
-  "stable-baselines3; sys_platform != 'darwin' or platform_machine != 'x86_64'",
-  "torch; sys_platform != 'darwin' or platform_machine != 'x86_64'",
-  "tqdm",
+    "torch ; sys_platform != 'darwin' or platform_machine != 'x86_64'",
+    "gymnasium",
+    "stable-baselines3 ; sys_platform != 'darwin' or platform_machine != 'x86_64'",
+    "sb3-contrib ; sys_platform != 'darwin' or platform_machine != 'x86_64'",
+    "tqdm",
 ]
 develop = [
-  "mypy",
-  "pre-commit",
-  "pytest-asyncio",
-  "pytest-cov",
-  "pytest-mock",
-  "pytest-random-order",
-  "pytest-timeout",
-  "pytest-xdist",
-  "pytest",
-  "ruff",
-  "scipy-stubs",
-  "time-machine",
-  "types-cachetools",
-  "types-filelock",
-  "types-python-dateutil",
-  "types-requests",
-  "types-tabulate",
+    "ruff",
+    "mypy",
+    "pre-commit",
+    "pytest",
+    "httpx2",
+    "pytest-asyncio",
+    "pytest-cov",
+    "pytest-mock",
+    "pytest-random-order",
+    "pytest-timeout",
+    "pytest-xdist",
+    "time-machine",
+    "nbconvert",
+    "scipy-stubs",
+    "types-cachetools",
+    "types-filelock",
+    "types-requests",
+    "types-tabulate",
+    "types-python-dateutil",
+    "pip-audit",
+    "build",
+    "pyyaml",
 ]
 jupyter = [
-  "ipykernel",
-  "jupyter",
-  "nbconvert",
-  "nbstripout",
+    "ipykernel",
+    "jupyter",
+    "nbconvert",
+    "nbstripout",
 ]
 all = [
-  "freqtrade[plot,hyperopt,freqai,freqai_rl,jupyter]",
+    "freqtrade[plot,hyperopt,freqai,freqai_rl,jupyter]",
 ]
 dev = [
-  "freqtrade[all,develop]",
+    "freqtrade[all,develop]",
 ]
 
 [project.urls]
@@ -165,12 +171,12 @@ log_format = "%(asctime)s %(levelname)s %(message)s"
 log_date_format = "%Y-%m-%d %H:%M:%S"
 addopts = ["-ra", "-q", "--strict-markers", "--import-mode=importlib", "--dist", "loadscope"]
 xfail_strict = true
-filterwarnings = ["error"]
 
 asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "function"
 
 filterwarnings = [
+    "error",
     # aiohttp warns that enable_cleanup_closed is a no-op on Python 3.14+
     # It's set internally by ccxt/aiohttp and out of our control.
     "ignore:enable_cleanup_closed ignored:DeprecationWarning:aiohttp.connector",
@@ -232,11 +238,8 @@ reportReturnType = false  # 28
 reportTypedDictNotRequiredAccess = false  # 27
 
 [tool.uv]
-exclude-newer = "1 week"
+override-dependencies = ["multidict>=6.9.1"]
 
-[tool.uv.exclude-newer-package]
-ccxt = false
-virtualenv = "5 days"
 
 [tool.ruff]
 line-length = 100

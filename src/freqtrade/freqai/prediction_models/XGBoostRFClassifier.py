@@ -7,7 +7,7 @@ import pandas as pd
 from pandas import DataFrame
 from pandas.api.types import is_integer_dtype
 from sklearn.preprocessing import LabelEncoder
-from xgboost import XGBRFClassifier
+from xgboost import XGBClassifier
 
 from freqtrade.freqai.base_models.BaseClassifierModel import BaseClassifierModel
 from freqtrade.freqai.data_kitchen import FreqaiDataKitchen
@@ -56,7 +56,12 @@ class XGBoostRFClassifier(BaseClassifierModel):
 
         init_model = self.get_init_model(dk.pair)
 
-        model = XGBRFClassifier(**self.model_training_parameters)
+        # Current XGBoost exposes RF behavior through one parallel-tree round.
+        parameters = {"learning_rate": 1.0, "subsample": 0.8,
+                      "colsample_bynode": 0.8, "reg_lambda": 1e-5,
+                      **self.model_training_parameters}
+        parameters["num_parallel_tree"] = parameters.pop("n_estimators", 100)
+        model = XGBClassifier(n_estimators=1, **parameters)
 
         model.fit(X=X, y=y, eval_set=eval_set, sample_weight=train_weights, xgb_model=init_model)
 

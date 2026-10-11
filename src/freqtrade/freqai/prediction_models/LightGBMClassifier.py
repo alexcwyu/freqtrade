@@ -3,6 +3,7 @@ from collections.abc import Callable
 from typing import Any
 
 from lightgbm import LGBMClassifier
+from sklearn.preprocessing import LabelEncoder
 
 from freqtrade.freqai.base_models.BaseClassifierModel import BaseClassifierModel
 from freqtrade.freqai.data_kitchen import FreqaiDataKitchen
@@ -55,7 +56,9 @@ class LightGBMClassifier(BaseClassifierModel):
         model.fit(
             X=X,
             y=y,
-            eval_set=eval_set,
+            eval_X=tuple(x for x, _ in eval_set) if eval_set else None,
+            eval_y=tuple(LabelEncoder().fit(y).transform(labels) for _, labels in eval_set)
+            if eval_set else None,
             sample_weight=train_weights,
             eval_sample_weight=[test_weights],
             init_model=init_model,

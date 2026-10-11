@@ -65,7 +65,8 @@ class LightGBMRegressorMultiTarget(BaseRegressionModel):
         for i in range(len(eval_sets)):
             fit_params.append(
                 {
-                    "eval_set": eval_sets[i],
+                    "eval_X": tuple(x for x, _ in eval_sets[i]) if eval_sets[i] else None,
+                    "eval_y": tuple(y for _, y in eval_sets[i]) if eval_sets[i] else None,
                     "eval_sample_weight": eval_weights,
                     "init_model": init_models[i],
                     "callbacks": callbacks,

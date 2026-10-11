@@ -153,11 +153,13 @@ def test_bot_cleanup_db_errors(mocker, default_conf_usdt, caplog, monkeypatch) -
     # Startup failed before init_db() - Trade.session doesn't exist.
     caplog.clear()
     check_mock.reset_mock()
-    monkeypatch.delattr(Trade, "session")
-    freqtrade.cleanup()
-    assert check_mock.call_count == 0
-    assert not log_has_re(r"Exception during cleanup.*", caplog)
-    assert not log_has_re(r"Error during cleanup.*", caplog)
+    with monkeypatch.context() as cleanup_context:
+        cleanup_context.delattr(Trade, "session")
+        freqtrade.cleanup()
+        assert check_mock.call_count == 0
+        assert not log_has_re(r"Exception during cleanup.*", caplog)
+        assert not log_has_re(r"Error during cleanup.*", caplog)
+
 
 
 @pytest.mark.parametrize("runmode", [RunMode.DRY_RUN, RunMode.LIVE])

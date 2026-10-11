@@ -1,7 +1,7 @@
 import logging
 from typing import Any
 
-from xgboost import XGBRFRegressor
+from xgboost import XGBRegressor
 
 from freqtrade.freqai.base_models.BaseRegressionModel import BaseRegressionModel
 from freqtrade.freqai.data_kitchen import FreqaiDataKitchen
@@ -42,7 +42,12 @@ class XGBoostRFRegressor(BaseRegressionModel):
 
         xgb_model = self.get_init_model(dk.pair)
 
-        model = XGBRFRegressor(**self.model_training_parameters)
+        # Current XGBoost exposes RF behavior through one parallel-tree round.
+        parameters = {"learning_rate": 1.0, "subsample": 0.8,
+                      "colsample_bynode": 0.8, "reg_lambda": 1e-5,
+                      **self.model_training_parameters}
+        parameters["num_parallel_tree"] = parameters.pop("n_estimators", 100)
+        model = XGBRegressor(n_estimators=1, **parameters)
 
         # Callbacks are not supported for XGBRFRegressor, and version 2.1.x started to throw
         # the following error:

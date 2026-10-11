@@ -2,6 +2,7 @@ import logging
 from typing import Any
 
 from lightgbm import LGBMClassifier
+from sklearn.preprocessing import LabelEncoder
 
 from freqtrade.freqai.base_models.BaseClassifierModel import BaseClassifierModel
 from freqtrade.freqai.base_models.FreqaiMultiOutputClassifier import FreqaiMultiOutputClassifier
@@ -63,7 +64,9 @@ class LightGBMClassifierMultiTarget(BaseClassifierModel):
         for i in range(len(eval_sets)):
             fit_params.append(
                 {
-                    "eval_set": eval_sets[i],
+                    "eval_X": eval_sets[i][0] if eval_sets[i] else None,
+                    "eval_y": LabelEncoder().fit(y.iloc[:, i]).transform(eval_sets[i][1])
+                    if eval_sets[i] else None,
                     "eval_sample_weight": eval_weights,
                     "init_model": init_models[i],
                     "callbacks": callbacks,
