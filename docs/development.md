@@ -1,5 +1,11 @@
 # Freqtrade Development Guide
 
+<!-- current-documentation-provenance -->
+Documentation reviewed: 2026-10-13 / Git source base: `323ee733de0a4807516c648261444df1bd5298de` / [Current architecture and feature guide](ayu-develop.md).
+Historical execution commands/results below retain their original dates and scope; this metadata update is not a new application test run.
+<!-- /current-documentation-provenance -->
+
+
 ## Development Setup
 
 ### Prerequisites

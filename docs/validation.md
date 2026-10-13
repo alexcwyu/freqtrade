@@ -1,5 +1,11 @@
 # freqtrade maintenance validation
 
+<!-- current-documentation-provenance -->
+Documentation reviewed: 2026-10-13 / Git source base: `323ee733de0a4807516c648261444df1bd5298de` / [Current architecture and feature guide](ayu-develop.md).
+Historical execution commands/results below retain their original dates and scope; this metadata update is not a new application test run.
+<!-- /current-documentation-provenance -->
+
+
 Recorded 2026-10-12T01:32:46.361256+08:00. Branch `feature/ayu_develop`; upstream default `upstream/develop` is merged: **true**. Branch/tag synchronization records are retained in the workspace maintenance evidence. Feature branch publication is coordinated separately.
 
 Runtime: **CPython 3.14.8**, uv **0.13.0**, build backend `hatchling.build`. The complete optional dependency environment includes Torch, which has no Python 3.15 wheel. Python 3.14.8 is selected.

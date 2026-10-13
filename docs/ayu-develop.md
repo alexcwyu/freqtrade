@@ -1,138 +1,263 @@
-# freqtrade: architecture and development
+# freqtrade: workflow, design and architecture
 
-Freqtrade runs automated crypto strategies with market-data management, backtesting/hyperoptimization, persistence, a REST API, Telegram control, and optional FreqAI prediction models.
+Updated: **2026-10-13**
+Reviewed Git hash: `323ee733de0a4807516c648261444df1bd5298de`
+Branch: `feature/ayu_develop`
+Source diff SHA256: `e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855`
+Scope: **Crypto trading / research engine** / Maintenance: **active**
+Languages: Python
 
-## Components and boundaries
+[HTML edition](ayu-develop.html) / [Development](development.md) / [Historical validation](validation.md) / [Full system comparison](../../docs/index.html)
 
-FreqtradeBot coordinates one processing cycle and owns Exchange, DataProvider, wallets, strategy, RPC, and persistence interactions. IStrategy supplies indicators and entry/exit decisions. Exchange wraps CCXT and synchronous/asynchronous market access. Trade/Order persist execution state. Backtesting reuses strategy interfaces with historical data; FreqAI prediction models add a separate data/training pipeline.
+## Purpose and scope
 
+Run configured crypto strategies in live or dry-run sessions, candle-driven historical replay, parameter optimization and optional FreqAI model pipelines.
+
+## Features and support boundaries
+
+Native = implemented here. Integration = supplied through a named host/API. Limited = material restriction. Not provided = evidenced scope exclusion. Unverified = support/absence not established. Not applicable = outside this artifact type.
+
+| Capability | Status | Implementation and limits | Source |
+|---|---|---|---|
+| Backtesting | Native | Local bot/replay/dry-run/strategy/protection/ledger/optimizer implementations supply these behaviors; broker access and optional dependencies require configured integrations. | [FreqtradeBot.__init__](../src/freqtrade/freqtradebot.py) ([L94](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/freqtradebot.py#L94)) / [FreqtradeBot.process](../src/freqtrade/freqtradebot.py) ([L306](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/freqtradebot.py#L306)) / [Exchange.create_order](../src/freqtrade/exchange/exchange.py) ([L1498](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/exchange/exchange.py#L1498)) / [Exchange.create_dry_run_order](../src/freqtrade/exchange/exchange.py) ([L1206](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/exchange/exchange.py#L1206)) / [Backtesting.backtest](../src/freqtrade/optimize/backtesting.py) ([L1763](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/optimize/backtesting.py#L1763)) / [Hyperopt.start](../src/freqtrade/optimize/hyperopt/hyperopt.py) ([L216](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/optimize/hyperopt/hyperopt.py#L216)) / [DataProvider.refresh](../src/freqtrade/data/dataprovider.py) ([L460](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/data/dataprovider.py#L460)) / [main](../src/freqtrade/main.py) ([L31](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/main.py#L31)) |
+| Live execution | Native | Local bot/replay/dry-run/strategy/protection/ledger/optimizer implementations supply these behaviors; broker access and optional dependencies require configured integrations. | [FreqtradeBot.__init__](../src/freqtrade/freqtradebot.py) ([L94](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/freqtradebot.py#L94)) / [FreqtradeBot.process](../src/freqtrade/freqtradebot.py) ([L306](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/freqtradebot.py#L306)) / [Exchange.create_order](../src/freqtrade/exchange/exchange.py) ([L1498](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/exchange/exchange.py#L1498)) / [Exchange.create_dry_run_order](../src/freqtrade/exchange/exchange.py) ([L1206](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/exchange/exchange.py#L1206)) / [Backtesting.backtest](../src/freqtrade/optimize/backtesting.py) ([L1763](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/optimize/backtesting.py#L1763)) / [Hyperopt.start](../src/freqtrade/optimize/hyperopt/hyperopt.py) ([L216](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/optimize/hyperopt/hyperopt.py#L216)) / [DataProvider.refresh](../src/freqtrade/data/dataprovider.py) ([L460](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/data/dataprovider.py#L460)) / [main](../src/freqtrade/main.py) ([L31](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/main.py#L31)) |
+| Paper trading | Native | Local bot/replay/dry-run/strategy/protection/ledger/optimizer implementations supply these behaviors; broker access and optional dependencies require configured integrations. | [FreqtradeBot.__init__](../src/freqtrade/freqtradebot.py) ([L94](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/freqtradebot.py#L94)) / [FreqtradeBot.process](../src/freqtrade/freqtradebot.py) ([L306](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/freqtradebot.py#L306)) / [Exchange.create_order](../src/freqtrade/exchange/exchange.py) ([L1498](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/exchange/exchange.py#L1498)) / [Exchange.create_dry_run_order](../src/freqtrade/exchange/exchange.py) ([L1206](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/exchange/exchange.py#L1206)) / [Backtesting.backtest](../src/freqtrade/optimize/backtesting.py) ([L1763](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/optimize/backtesting.py#L1763)) / [Hyperopt.start](../src/freqtrade/optimize/hyperopt/hyperopt.py) ([L216](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/optimize/hyperopt/hyperopt.py#L216)) / [DataProvider.refresh](../src/freqtrade/data/dataprovider.py) ([L460](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/data/dataprovider.py#L460)) / [main](../src/freqtrade/main.py) ([L31](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/main.py#L31)) |
+| Event driven | Limited | Stateful candle/timestamp processing and callbacks are present; main bot is a refreshed/throttled processing loop rather than a general tick-level event engine. | [FreqtradeBot.process](../src/freqtrade/freqtradebot.py) ([L306](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/freqtradebot.py#L306)) / [Backtesting.backtest](../src/freqtrade/optimize/backtesting.py) ([L1763](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/optimize/backtesting.py#L1763)) |
+| Vectorized | Limited | Strategy DataFrame indicator/signal hooks are vectorized; backtest fills iterate chronological candle/pair data. | [IStrategy.populate_entry_trend](../src/freqtrade/strategy/interface.py) ([L254](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/strategy/interface.py#L254)) / [Backtesting.backtest](../src/freqtrade/optimize/backtesting.py) ([L1763](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/optimize/backtesting.py#L1763)) |
+| Order management | Native | Local bot/replay/dry-run/strategy/protection/ledger/optimizer implementations supply these behaviors; broker access and optional dependencies require configured integrations. | [FreqtradeBot.__init__](../src/freqtrade/freqtradebot.py) ([L94](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/freqtradebot.py#L94)) / [FreqtradeBot.process](../src/freqtrade/freqtradebot.py) ([L306](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/freqtradebot.py#L306)) / [Exchange.create_order](../src/freqtrade/exchange/exchange.py) ([L1498](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/exchange/exchange.py#L1498)) / [Exchange.create_dry_run_order](../src/freqtrade/exchange/exchange.py) ([L1206](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/exchange/exchange.py#L1206)) / [Backtesting.backtest](../src/freqtrade/optimize/backtesting.py) ([L1763](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/optimize/backtesting.py#L1763)) / [Hyperopt.start](../src/freqtrade/optimize/hyperopt/hyperopt.py) ([L216](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/optimize/hyperopt/hyperopt.py#L216)) / [DataProvider.refresh](../src/freqtrade/data/dataprovider.py) ([L460](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/data/dataprovider.py#L460)) / [main](../src/freqtrade/main.py) ([L31](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/main.py#L31)) |
+| Order types | Native | Local bot/replay/dry-run/strategy/protection/ledger/optimizer implementations supply these behaviors; broker access and optional dependencies require configured integrations. | [FreqtradeBot.__init__](../src/freqtrade/freqtradebot.py) ([L94](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/freqtradebot.py#L94)) / [FreqtradeBot.process](../src/freqtrade/freqtradebot.py) ([L306](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/freqtradebot.py#L306)) / [Exchange.create_order](../src/freqtrade/exchange/exchange.py) ([L1498](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/exchange/exchange.py#L1498)) / [Exchange.create_dry_run_order](../src/freqtrade/exchange/exchange.py) ([L1206](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/exchange/exchange.py#L1206)) / [Backtesting.backtest](../src/freqtrade/optimize/backtesting.py) ([L1763](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/optimize/backtesting.py#L1763)) / [Hyperopt.start](../src/freqtrade/optimize/hyperopt/hyperopt.py) ([L216](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/optimize/hyperopt/hyperopt.py#L216)) / [DataProvider.refresh](../src/freqtrade/data/dataprovider.py) ([L460](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/data/dataprovider.py#L460)) / [main](../src/freqtrade/main.py) ([L31](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/main.py#L31)) |
+| Multi venue | Limited | Exchange resolver offers different venues, but each FreqtradeBot owns one configured Exchange. Multi-bot setup is separate from one multi-venue portfolio session. | [FreqtradeBot.__init__](../src/freqtrade/freqtradebot.py) ([L94](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/freqtradebot.py#L94)) |
+| Crypto | Integration | CCXT exchange routing and bot futures funding/liquidation paths combine with venue support/market contracts. | [FreqtradeBot.__init__](../src/freqtrade/freqtradebot.py) ([L94](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/freqtradebot.py#L94)) / [Exchange.create_order](../src/freqtrade/exchange/exchange.py) ([L1498](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/exchange/exchange.py#L1498)) |
+| Equities | Unverified | Representative source review did not establish this capability; no claim of absence. | Not applicable to this repository scope. |
+| Futures | Integration | CCXT exchange routing and bot futures funding/liquidation paths combine with venue support/market contracts. | [FreqtradeBot.__init__](../src/freqtrade/freqtradebot.py) ([L94](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/freqtradebot.py#L94)) / [Exchange.create_order](../src/freqtrade/exchange/exchange.py) ([L1498](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/exchange/exchange.py#L1498)) |
+| Options | Unverified | Representative source review did not establish this capability; no claim of absence. | Not applicable to this repository scope. |
+| Forex | Unverified | Representative source review did not establish this capability; no claim of absence. | Not applicable to this repository scope. |
+| Strategy api | Native | Local bot/replay/dry-run/strategy/protection/ledger/optimizer implementations supply these behaviors; broker access and optional dependencies require configured integrations. | [FreqtradeBot.__init__](../src/freqtrade/freqtradebot.py) ([L94](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/freqtradebot.py#L94)) / [FreqtradeBot.process](../src/freqtrade/freqtradebot.py) ([L306](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/freqtradebot.py#L306)) / [Exchange.create_order](../src/freqtrade/exchange/exchange.py) ([L1498](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/exchange/exchange.py#L1498)) / [Exchange.create_dry_run_order](../src/freqtrade/exchange/exchange.py) ([L1206](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/exchange/exchange.py#L1206)) / [Backtesting.backtest](../src/freqtrade/optimize/backtesting.py) ([L1763](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/optimize/backtesting.py#L1763)) / [Hyperopt.start](../src/freqtrade/optimize/hyperopt/hyperopt.py) ([L216](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/optimize/hyperopt/hyperopt.py#L216)) / [DataProvider.refresh](../src/freqtrade/data/dataprovider.py) ([L460](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/data/dataprovider.py#L460)) / [main](../src/freqtrade/main.py) ([L31](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/main.py#L31)) |
+| Optimization | Native | Local bot/replay/dry-run/strategy/protection/ledger/optimizer implementations supply these behaviors; broker access and optional dependencies require configured integrations. | [FreqtradeBot.__init__](../src/freqtrade/freqtradebot.py) ([L94](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/freqtradebot.py#L94)) / [FreqtradeBot.process](../src/freqtrade/freqtradebot.py) ([L306](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/freqtradebot.py#L306)) / [Exchange.create_order](../src/freqtrade/exchange/exchange.py) ([L1498](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/exchange/exchange.py#L1498)) / [Exchange.create_dry_run_order](../src/freqtrade/exchange/exchange.py) ([L1206](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/exchange/exchange.py#L1206)) / [Backtesting.backtest](../src/freqtrade/optimize/backtesting.py) ([L1763](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/optimize/backtesting.py#L1763)) / [Hyperopt.start](../src/freqtrade/optimize/hyperopt/hyperopt.py) ([L216](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/optimize/hyperopt/hyperopt.py#L216)) / [DataProvider.refresh](../src/freqtrade/data/dataprovider.py) ([L460](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/data/dataprovider.py#L460)) / [main](../src/freqtrade/main.py) ([L31](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/main.py#L31)) |
+| Machine learning | Integration | Native FreqAI orchestration integrates optional model libraries and RL environment/Maskable evaluation dependencies. | [FreqaiDataKitchen.make_train_test_datasets](../src/freqtrade/freqai/data_kitchen.py) ([L124](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/freqai/data_kitchen.py#L124)) / [BaseReinforcementLearningModel.train](../src/freqtrade/freqai/RL/BaseReinforcementLearningModel.py) ([L99](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/freqai/RL/BaseReinforcementLearningModel.py#L99)) / [BaseReinforcementLearningModel.set_train_and_eval_environments](../src/freqtrade/freqai/RL/BaseReinforcementLearningModel.py) ([L153](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/freqai/RL/BaseReinforcementLearningModel.py#L153)) |
+| Reinforcement learning | Integration | Native FreqAI orchestration integrates optional model libraries and RL environment/Maskable evaluation dependencies. | [FreqaiDataKitchen.make_train_test_datasets](../src/freqtrade/freqai/data_kitchen.py) ([L124](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/freqai/data_kitchen.py#L124)) / [BaseReinforcementLearningModel.train](../src/freqtrade/freqai/RL/BaseReinforcementLearningModel.py) ([L99](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/freqai/RL/BaseReinforcementLearningModel.py#L99)) / [BaseReinforcementLearningModel.set_train_and_eval_environments](../src/freqtrade/freqai/RL/BaseReinforcementLearningModel.py) ([L153](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/freqai/RL/BaseReinforcementLearningModel.py#L153)) |
+| Portfolio | Native | Local bot/replay/dry-run/strategy/protection/ledger/optimizer implementations supply these behaviors; broker access and optional dependencies require configured integrations. | [FreqtradeBot.__init__](../src/freqtrade/freqtradebot.py) ([L94](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/freqtradebot.py#L94)) / [FreqtradeBot.process](../src/freqtrade/freqtradebot.py) ([L306](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/freqtradebot.py#L306)) / [Exchange.create_order](../src/freqtrade/exchange/exchange.py) ([L1498](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/exchange/exchange.py#L1498)) / [Exchange.create_dry_run_order](../src/freqtrade/exchange/exchange.py) ([L1206](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/exchange/exchange.py#L1206)) / [Backtesting.backtest](../src/freqtrade/optimize/backtesting.py) ([L1763](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/optimize/backtesting.py#L1763)) / [Hyperopt.start](../src/freqtrade/optimize/hyperopt/hyperopt.py) ([L216](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/optimize/hyperopt/hyperopt.py#L216)) / [DataProvider.refresh](../src/freqtrade/data/dataprovider.py) ([L460](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/data/dataprovider.py#L460)) / [main](../src/freqtrade/main.py) ([L31](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/main.py#L31)) |
+| Risk management | Native | Local bot/replay/dry-run/strategy/protection/ledger/optimizer implementations supply these behaviors; broker access and optional dependencies require configured integrations. | [FreqtradeBot.__init__](../src/freqtrade/freqtradebot.py) ([L94](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/freqtradebot.py#L94)) / [FreqtradeBot.process](../src/freqtrade/freqtradebot.py) ([L306](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/freqtradebot.py#L306)) / [Exchange.create_order](../src/freqtrade/exchange/exchange.py) ([L1498](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/exchange/exchange.py#L1498)) / [Exchange.create_dry_run_order](../src/freqtrade/exchange/exchange.py) ([L1206](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/exchange/exchange.py#L1206)) / [Backtesting.backtest](../src/freqtrade/optimize/backtesting.py) ([L1763](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/optimize/backtesting.py#L1763)) / [Hyperopt.start](../src/freqtrade/optimize/hyperopt/hyperopt.py) ([L216](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/optimize/hyperopt/hyperopt.py#L216)) / [DataProvider.refresh](../src/freqtrade/data/dataprovider.py) ([L460](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/data/dataprovider.py#L460)) / [main](../src/freqtrade/main.py) ([L31](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/main.py#L31)) |
+| Performance analytics | Native | Local backtesting report pipeline computes trade/profit statistics, Sharpe/Sortino/Calmar and drawdown; FreqUI displays these backend-computed values through API integration. | [calculate_sharpe](../src/freqtrade/data/metrics.py) ([L455](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/data/metrics.py#L455)) / [generate_strategy_stats](../src/freqtrade/optimize/optimize_reports/optimize_reports.py) ([L554](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/optimize/optimize_reports/optimize_reports.py#L554)) / [Backtesting.start](../src/freqtrade/optimize/backtesting.py) ([L1906](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/optimize/backtesting.py#L1906)) |
+| Historical data | Native | Local bot/replay/dry-run/strategy/protection/ledger/optimizer implementations supply these behaviors; broker access and optional dependencies require configured integrations. | [FreqtradeBot.__init__](../src/freqtrade/freqtradebot.py) ([L94](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/freqtradebot.py#L94)) / [FreqtradeBot.process](../src/freqtrade/freqtradebot.py) ([L306](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/freqtradebot.py#L306)) / [Exchange.create_order](../src/freqtrade/exchange/exchange.py) ([L1498](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/exchange/exchange.py#L1498)) / [Exchange.create_dry_run_order](../src/freqtrade/exchange/exchange.py) ([L1206](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/exchange/exchange.py#L1206)) / [Backtesting.backtest](../src/freqtrade/optimize/backtesting.py) ([L1763](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/optimize/backtesting.py#L1763)) / [Hyperopt.start](../src/freqtrade/optimize/hyperopt/hyperopt.py) ([L216](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/optimize/hyperopt/hyperopt.py#L216)) / [DataProvider.refresh](../src/freqtrade/data/dataprovider.py) ([L460](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/data/dataprovider.py#L460)) / [main](../src/freqtrade/main.py) ([L31](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/main.py#L31)) |
+| Streaming data | Limited | Exchange refresh may use optional venue websocket support; inspected primary flow refreshes OHLCV/trades each loop. | [DataProvider.refresh](../src/freqtrade/data/dataprovider.py) ([L460](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/data/dataprovider.py#L460)) / [FreqtradeBot.process](../src/freqtrade/freqtradebot.py) ([L306](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/freqtradebot.py#L306)) |
+| Persistence | Native | Local bot/replay/dry-run/strategy/protection/ledger/optimizer implementations supply these behaviors; broker access and optional dependencies require configured integrations. | [FreqtradeBot.__init__](../src/freqtrade/freqtradebot.py) ([L94](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/freqtradebot.py#L94)) / [FreqtradeBot.process](../src/freqtrade/freqtradebot.py) ([L306](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/freqtradebot.py#L306)) / [Exchange.create_order](../src/freqtrade/exchange/exchange.py) ([L1498](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/exchange/exchange.py#L1498)) / [Exchange.create_dry_run_order](../src/freqtrade/exchange/exchange.py) ([L1206](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/exchange/exchange.py#L1206)) / [Backtesting.backtest](../src/freqtrade/optimize/backtesting.py) ([L1763](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/optimize/backtesting.py#L1763)) / [Hyperopt.start](../src/freqtrade/optimize/hyperopt/hyperopt.py) ([L216](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/optimize/hyperopt/hyperopt.py#L216)) / [DataProvider.refresh](../src/freqtrade/data/dataprovider.py) ([L460](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/data/dataprovider.py#L460)) / [main](../src/freqtrade/main.py) ([L31](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/main.py#L31)) |
+| Data pipeline | Native | Local bot/replay/dry-run/strategy/protection/ledger/optimizer implementations supply these behaviors; broker access and optional dependencies require configured integrations. | [FreqtradeBot.__init__](../src/freqtrade/freqtradebot.py) ([L94](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/freqtradebot.py#L94)) / [FreqtradeBot.process](../src/freqtrade/freqtradebot.py) ([L306](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/freqtradebot.py#L306)) / [Exchange.create_order](../src/freqtrade/exchange/exchange.py) ([L1498](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/exchange/exchange.py#L1498)) / [Exchange.create_dry_run_order](../src/freqtrade/exchange/exchange.py) ([L1206](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/exchange/exchange.py#L1206)) / [Backtesting.backtest](../src/freqtrade/optimize/backtesting.py) ([L1763](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/optimize/backtesting.py#L1763)) / [Hyperopt.start](../src/freqtrade/optimize/hyperopt/hyperopt.py) ([L216](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/optimize/hyperopt/hyperopt.py#L216)) / [DataProvider.refresh](../src/freqtrade/data/dataprovider.py) ([L460](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/data/dataprovider.py#L460)) / [main](../src/freqtrade/main.py) ([L31](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/main.py#L31)) |
+| Web ui | Integration | REST/RPC backend exposes control/reporting and frontend integration; independent FreqUI supplies interactive client. | [ApiServer.start_api](../src/freqtrade/rpc/api_server/webserver.py) ([L295](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/rpc/api_server/webserver.py#L295)) / [FreqtradeBot.process](../src/freqtrade/freqtradebot.py) ([L306](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/freqtradebot.py#L306)) / [Backtesting.backtest](../src/freqtrade/optimize/backtesting.py) ([L1763](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/optimize/backtesting.py#L1763)) |
+| Cli | Native | Local bot/replay/dry-run/strategy/protection/ledger/optimizer implementations supply these behaviors; broker access and optional dependencies require configured integrations. | [FreqtradeBot.__init__](../src/freqtrade/freqtradebot.py) ([L94](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/freqtradebot.py#L94)) / [FreqtradeBot.process](../src/freqtrade/freqtradebot.py) ([L306](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/freqtradebot.py#L306)) / [Exchange.create_order](../src/freqtrade/exchange/exchange.py) ([L1498](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/exchange/exchange.py#L1498)) / [Exchange.create_dry_run_order](../src/freqtrade/exchange/exchange.py) ([L1206](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/exchange/exchange.py#L1206)) / [Backtesting.backtest](../src/freqtrade/optimize/backtesting.py) ([L1763](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/optimize/backtesting.py#L1763)) / [Hyperopt.start](../src/freqtrade/optimize/hyperopt/hyperopt.py) ([L216](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/optimize/hyperopt/hyperopt.py#L216)) / [DataProvider.refresh](../src/freqtrade/data/dataprovider.py) ([L460](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/data/dataprovider.py#L460)) / [main](../src/freqtrade/main.py) ([L31](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/main.py#L31)) |
+| Monitoring | Integration | REST/RPC backend exposes control/reporting and frontend integration; independent FreqUI supplies interactive client. | [ApiServer.start_api](../src/freqtrade/rpc/api_server/webserver.py) ([L295](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/rpc/api_server/webserver.py#L295)) / [FreqtradeBot.process](../src/freqtrade/freqtradebot.py) ([L306](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/freqtradebot.py#L306)) / [Backtesting.backtest](../src/freqtrade/optimize/backtesting.py) ([L1763](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/optimize/backtesting.py#L1763)) |
+| Extension api | Native | Local bot/replay/dry-run/strategy/protection/ledger/optimizer implementations supply these behaviors; broker access and optional dependencies require configured integrations. | [FreqtradeBot.__init__](../src/freqtrade/freqtradebot.py) ([L94](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/freqtradebot.py#L94)) / [FreqtradeBot.process](../src/freqtrade/freqtradebot.py) ([L306](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/freqtradebot.py#L306)) / [Exchange.create_order](../src/freqtrade/exchange/exchange.py) ([L1498](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/exchange/exchange.py#L1498)) / [Exchange.create_dry_run_order](../src/freqtrade/exchange/exchange.py) ([L1206](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/exchange/exchange.py#L1206)) / [Backtesting.backtest](../src/freqtrade/optimize/backtesting.py) ([L1763](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/optimize/backtesting.py#L1763)) / [Hyperopt.start](../src/freqtrade/optimize/hyperopt/hyperopt.py) ([L216](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/optimize/hyperopt/hyperopt.py#L216)) / [DataProvider.refresh](../src/freqtrade/data/dataprovider.py) ([L460](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/data/dataprovider.py#L460)) / [main](../src/freqtrade/main.py) ([L31](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/main.py#L31)) |
+| Native acceleration | Unverified | Representative source review did not establish this capability; no claim of absence. | Not applicable to this repository scope. |
+| Distributed execution | Limited | Hyperopt uses local joblib process parallelism; that is not evidence of distributed live portfolio execution. | [Hyperopt.start](../src/freqtrade/optimize/hyperopt/hyperopt.py) ([L216](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/optimize/hyperopt/hyperopt.py#L216)) |
+
+## System components
+
+| Component | Responsibility | Source |
+|---|---|---|
+| Trading loop | Analyze candles and manage orders/exits/entries. | [FreqtradeBot.__init__](../src/freqtrade/freqtradebot.py) ([L94](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/freqtradebot.py#L94)) / [FreqtradeBot.process](../src/freqtrade/freqtradebot.py) ([L306](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/freqtradebot.py#L306)) |
+| Strategy hooks | DataFrame signals plus custom entry/exit/risk lifecycle hooks. | [IStrategy.populate_entry_trend](../src/freqtrade/strategy/interface.py) ([L254](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/strategy/interface.py#L254)) |
+| Exchange adapter | CCXT order routing and local dry-run fill model. | [Exchange.create_order](../src/freqtrade/exchange/exchange.py) ([L1498](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/exchange/exchange.py#L1498)) / [Exchange.create_dry_run_order](../src/freqtrade/exchange/exchange.py) ([L1206](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/exchange/exchange.py#L1206)) |
+| Market data provider | Refresh/cache tradeable and informative pair histories. | [DataProvider.refresh](../src/freqtrade/data/dataprovider.py) ([L460](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/data/dataprovider.py#L460)) |
+| Historical/optimization engines | Chronological replay and parallel parameter trials. | [Backtesting.backtest](../src/freqtrade/optimize/backtesting.py) ([L1763](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/optimize/backtesting.py#L1763)) / [Hyperopt.start](../src/freqtrade/optimize/hyperopt/hyperopt.py) ([L216](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/optimize/hyperopt/hyperopt.py#L216)) |
+| FreqAI optional pipeline | Train/test transformations and model/RL environment interfaces. | [FreqaiDataKitchen.make_train_test_datasets](../src/freqtrade/freqai/data_kitchen.py) ([L124](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/freqai/data_kitchen.py#L124)) / [BaseReinforcementLearningModel.train](../src/freqtrade/freqai/RL/BaseReinforcementLearningModel.py) ([L99](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/freqai/RL/BaseReinforcementLearningModel.py#L99)) |
+| Persistence | Persistent trades and order state reconciliation. | [Order.update_from_ccxt_object](../src/freqtrade/persistence/trade_model.py) ([L197](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/persistence/trade_model.py#L197)) |
+| Operational API | REST control/reporting and frontend integration. | [ApiServer.start_api](../src/freqtrade/rpc/api_server/webserver.py) ([L295](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/rpc/api_server/webserver.py#L295)) |
+
+## Architecture and component boundaries
+
+The component view summarizes inspected responsibility boundaries. Arrows identify the documented API/data dependencies; this is not a deployment-readiness claim.
 
 ```mermaid
 flowchart LR
-  A0["Config and strategy resolution"]
-  A1["Candle data and indicators"]
-  A2["Entry or exit decision"]
-  A3["Exchange orders and Trade"]
-  A4["RPC and persistence"]
-  A0 --> A1
-  A1 --> A2
-  A2 --> A3
-  A3 --> A4
+  N0["Trading loop"]
+  N1["Strategy hooks"]
+  N2["Exchange adapter"]
+  N3["Market data provider"]
+  N4["Historical/optimization engines"]
+  N5["FreqAI optional pipeline"]
+  N6["Persistence"]
+  N7["Operational API"]
+  N0 -->|"Refresh data before analysis."| N3
+  N0 -->|"Invoke analyze and safe bot_loop_start."| N1
+  N0 -->|"Configured exchange provides order operations."| N2
+  N0 -->|"Read open trades and commit order/position changes."| N6
+  N4 -->|"Backtests consume analyzed strategy data and configured hooks."| N1
+  N5 -->|"Features/models plug into strategy pipeline."| N1
 ```
 
-The following class view names implementation classes. Cross-package types are supplied by the host ecosystem; arrows describe inheritance or usage, not copied ownership.
+- Refresh data before analysis.: [FreqtradeBot.process](../src/freqtrade/freqtradebot.py) ([L306](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/freqtradebot.py#L306))
+- Invoke analyze and safe bot_loop_start.: [FreqtradeBot.process](../src/freqtrade/freqtradebot.py) ([L306](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/freqtradebot.py#L306))
+- Configured exchange provides order operations.: [FreqtradeBot.__init__](../src/freqtrade/freqtradebot.py) ([L94](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/freqtradebot.py#L94)) / [Exchange.create_order](../src/freqtrade/exchange/exchange.py) ([L1498](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/exchange/exchange.py#L1498))
+- Read open trades and commit order/position changes.: [FreqtradeBot.process](../src/freqtrade/freqtradebot.py) ([L306](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/freqtradebot.py#L306))
+- Backtests consume analyzed strategy data and configured hooks.: [Backtesting.backtest](../src/freqtrade/optimize/backtesting.py) ([L1763](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/optimize/backtesting.py#L1763))
+- Features/models plug into strategy pipeline.: [FreqaiDataKitchen.make_train_test_datasets](../src/freqtrade/freqai/data_kitchen.py) ([L124](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/freqai/data_kitchen.py#L124)) / [BaseReinforcementLearningModel.train](../src/freqtrade/freqai/RL/BaseReinforcementLearningModel.py) ([L99](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/freqai/RL/BaseReinforcementLearningModel.py#L99))
+
+## Design decisions
+
+| Decision | Rationale | Tradeoff | Evidence |
+|---|---|---|---|
+| Exit/reconcile existing trades before new entries. | Preserves trade slots and avoids order/force-exit races using exit lock. | Order/analysis latency is tied to serial loop processing and configured refresh cadence. | [FreqtradeBot.process](../src/freqtrade/freqtradebot.py) ([L306](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/freqtradebot.py#L306)) |
+| Separate vectorized signal preparation from chronological trade simulation. | DataFrame hooks compute indicators efficiently while order/portfolio path remains stateful. | Vectorized indicators do not establish a fully vectorized fill/portfolio engine. | [IStrategy.populate_entry_trend](../src/freqtrade/strategy/interface.py) ([L254](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/strategy/interface.py#L254)) / [Backtesting.backtest](../src/freqtrade/optimize/backtesting.py) ([L1763](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/optimize/backtesting.py#L1763)) |
+
+## Class and interface relationships
 
 ```mermaid
 classDiagram
-  class FreqtradeBot
-  class IStrategy
-  class Exchange
-  class Trade
-  class Backtesting
-  FreqtradeBot --> IStrategy : strategy callbacks
-  FreqtradeBot --> Exchange : exchange operations
-  FreqtradeBot --> Trade : persists
-  Backtesting --> IStrategy : historical execution
+  class N0["FreqtradeBot"] {
+    <<class>>
+    +process()
+    +startup()
+    +manage_open_orders()
+  }
+  class N1["IStrategy"] {
+    <<class>>
+    +populate_indicators()
+    +populate_entry_trend()
+    +populate_exit_trend()
+  }
+  class N2["Exchange"] {
+    <<class>>
+    +create_order()
+    +create_dry_run_order()
+  }
+  class N3["DataProvider"] {
+    <<class>>
+    +refresh()
+    +historic_ohlcv()
+  }
+  class N4["Backtesting"] {
+    <<class>>
+    +backtest()
+    +start()
+  }
+  class N5["Hyperopt"] {
+    <<class>>
+    +start()
+    +run_optimizer_parallel()
+  }
+  class N6["FreqaiDataKitchen"] {
+    <<class>>
+    +make_train_test_datasets()
+  }
+  class N7["BaseReinforcementLearningModel"] {
+    <<class>>
+    +train()
+    +set_train_and_eval_environments()
+    +fit()
+  }
+  N0 *-- N1 : Loads and owns strategy via resolver.
+  N0 *-- N2 : Loads and owns configured exchange.
+  N0 *-- N3 : Creates DataProvider and attaches to strategy.
+  N7 ..> N6 : Training operates on supplied DataKitchen features/labels.
 ```
 
-## Runtime workflow
+Each node is a reviewed source symbol. Function/module nodes are explicitly labeled; they do not imply Python classes. Only reviewed relationships are drawn.
 
-Resolve configuration and strategy, initialize exchange/markets and persistence, refresh candles, populate indicators and decisions, validate stake/risk constraints, submit orders, reconcile fills/stop orders, and notify RPC clients. Backtesting repeats decisions over historical timestamps and exports performance statistics. Command-owned exchange sessions are closed deterministically even after errors.
+- **FreqtradeBot** (class): [FreqtradeBot.process](../src/freqtrade/freqtradebot.py) ([L306](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/freqtradebot.py#L306))
+- **IStrategy** (class): [IStrategy.populate_entry_trend](../src/freqtrade/strategy/interface.py) ([L254](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/strategy/interface.py#L254))
+- **Exchange** (class): [Exchange.create_order](../src/freqtrade/exchange/exchange.py) ([L1498](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/exchange/exchange.py#L1498))
+- **DataProvider** (class): [DataProvider.refresh](../src/freqtrade/data/dataprovider.py) ([L460](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/data/dataprovider.py#L460))
+- **Backtesting** (class): [Backtesting.backtest](../src/freqtrade/optimize/backtesting.py) ([L1763](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/optimize/backtesting.py#L1763))
+- **Hyperopt** (class): [Hyperopt.start](../src/freqtrade/optimize/hyperopt/hyperopt.py) ([L216](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/optimize/hyperopt/hyperopt.py#L216))
+- **FreqaiDataKitchen** (class): [FreqaiDataKitchen.make_train_test_datasets](../src/freqtrade/freqai/data_kitchen.py) ([L124](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/freqai/data_kitchen.py#L124))
+- **BaseReinforcementLearningModel** (class): [BaseReinforcementLearningModel.train](../src/freqtrade/freqai/RL/BaseReinforcementLearningModel.py) ([L99](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/freqai/RL/BaseReinforcementLearningModel.py#L99))
 
+## Workflow
 
-```mermaid
-sequenceDiagram
-  participant Caller
-  participant P1 as Candle data and indicators
-  participant P2 as Entry or exit decision
-  participant P3 as Exchange orders and Trade
-  Caller->>P1: Configure context and inputs
-  P1->>P2: Initialize owned components
-  P2->>P3: Process observation or command
-  P3-->>P2: Result and state update
-  P2-->>Caller: Report or event
-  Caller->>P1: Stop and release resources
-```
+### Live/dry-run processing cycle
 
-This sequence is an architectural view of responsibility and resource ownership. Individual plugin, connector, and strategy implementations can add asynchronous events and error branches. The lifecycle below is a conceptual operating workflow, rather than a claim that every component has one shared state enum.
-
-```mermaid
-stateDiagram-v2
-  [*] --> Configured
-  Configured --> Initialized: validate inputs
-  Initialized --> Processing: start
-  Processing --> Processing: next data or event
-  Processing --> Stopping: finish or cancel
-  Initialized --> Stopping: initialization error
-  Stopping --> Closed: release owned resources
-  Closed --> [*]
-```
-
-## Features and extension points
-
-Spot/futures strategies; order/stop-loss lifecycle; pair lists and protections; historical download/conversion; hyperoptimization and lookahead analysis; FastAPI/Telegram RPC; FreqAI and reinforcement-learning extras.
-
-Extend the owning component behind its existing public interface. Keep metadata and configuration alongside plugin/strategy resources. Exchange-specific behavior belongs in an adapter; strategy decisions belong in the strategy/evaluator layer; persistence schema and migrations belong with the storage implementation. Review the source map below before changing a boundary, and exercise the existing tests associated with that boundary.
-
-## Packaging and dependency design
-
-The src layout retains all upstream namespace files and package resources. Latest runtime/development/optional requirements are reconciled with upstream, including TA-Lib and HTTP test-client changes. Python 3.15 all-extras is blocked by Torch wheel availability; managed Python 3.14.8 is selected. Test resource cleanup is explicit; warning filters and assertions are retained.
-
-The lock records exact package versions, hashes, platform markers, and local source mappings. Path sources deliberately bind related repositories in this workspace; clone sibling repositories at the documented names before synchronization. Published packaging metadata describes public dependencies, while uv source settings select this development workspace. Resolve dependency changes with uv lock --upgrade and retain the generated lock, then verify the same locked environment.
-
-```mermaid
-flowchart LR
-  Source["src/freqtrade"] --> Backend["PEP 517 build backend"]
-  Metadata["pyproject.toml"] --> Backend
-  Lock["uv.lock"] --> Env["Managed Python environment"]
-  Backend --> Wheel["Wheel and sdist"]
-  Env --> Existing["Existing tests"]
-  Source --> Existing
-  Wheel --> Inspect["Inspect modules and resources"]
-```
-
-## Maintenance workflow
-
-All upstream branches and tags are fetched. Fork updates use nonforce pushes; a divergent branch is merged without erasing fork history. The default branch is merged into feature/ayu_develop with package/resource conflicts reconciled in their installed locations. Build and test evidence is recorded before a local maintenance commit. Feature branch publication is a separate root-level action.
+Live/dry-run routing is controlled by Exchange.create_order; none of these network operations were executed during this audit.
 
 ```mermaid
 flowchart TD
-  F["Fetch upstream branches and tags"] --> C["Compare fork refs"]
-  C --> M["Nonforce ref sync and default merge"]
-  M --> L["uv lock --upgrade"]
-  L --> P["Try managed Python 3.15"]
-  P --> Q{"All required dependencies build?"}
-  Q -->|yes| S["Sync complete environment"]
-  Q -->|no| B["Record evidence and select supported fallback"]
-  B --> S
-  S --> W["Build wheel and sdist"]
-  W --> T["Run existing tests and compile"]
-  T --> R["Record failures, fixes, and exact results"]
-  R --> D["Render MD and HTML documentation"]
-  D --> G["Commit locally on feature/ayu_develop"]
+  W0["Reload exchange markets and query open trades."]
+  W1["Refresh tradeable and informative candles."]
+  W0 --> W1
+  W2["Run strategy loop callback and analyze pair DataFrames."]
+  W1 --> W2
+  W3["Manage open orders, exit existing trades and adjust positions first."]
+  W2 --> W3
+  W4["Enter new positions if running with free slots."]
+  W3 --> W4
+  W5["Commit persistent state and dispatch RPC messages."]
+  W4 --> W5
 ```
 
-No existing test assertions are removed and no new test cases are introduced in this maintenance pass. Corrected fixtures preserve coverage while making paths, corruption inputs, and resource cleanup compatible with the selected interpreter. A failed test or unsupported dependency is reported explicitly in [validation](validation.md); package build success does not imply strategy correctness, profitability, or successful live connectivity.
+1. Reload exchange markets and query open trades.. [FreqtradeBot.process](../src/freqtrade/freqtradebot.py) ([L306](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/freqtradebot.py#L306))
+2. Refresh tradeable and informative candles.. [DataProvider.refresh](../src/freqtrade/data/dataprovider.py) ([L460](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/data/dataprovider.py#L460)) / [FreqtradeBot.process](../src/freqtrade/freqtradebot.py) ([L306](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/freqtradebot.py#L306))
+3. Run strategy loop callback and analyze pair DataFrames.. [FreqtradeBot.process](../src/freqtrade/freqtradebot.py) ([L306](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/freqtradebot.py#L306))
+4. Manage open orders; exit existing trades and adjust positions first.. [FreqtradeBot.process](../src/freqtrade/freqtradebot.py) ([L306](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/freqtradebot.py#L306))
+5. Enter new positions if running with free slots.. [FreqtradeBot.process](../src/freqtrade/freqtradebot.py) ([L306](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/freqtradebot.py#L306))
+6. Commit persistent state and dispatch RPC messages.. [FreqtradeBot.process](../src/freqtrade/freqtradebot.py) ([L306](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/freqtradebot.py#L306))
+
+## Sequence
+
+One strategy cycle
+
+Order call is conditional downstream processing, not guaranteed on every cycle.
+
+```mermaid
+sequenceDiagram
+  participant N0 as FreqtradeBot
+  participant N1 as DataProvider
+  participant N2 as IStrategy
+  participant N3 as Exchange
+  N0->>N1: refresh tradeable and informative pairs
+  N0->>N2: bot_loop_start then analyze
+  N0->>N0: manage_open_orders → exit_positions → adjust → enter
+  N0->>N3: Order creation when strategy/position action requires it
+```
+
+- refresh tradeable and informative pairs: [FreqtradeBot.process](../src/freqtrade/freqtradebot.py) ([L306](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/freqtradebot.py#L306))
+- bot_loop_start then analyze: [FreqtradeBot.process](../src/freqtrade/freqtradebot.py) ([L306](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/freqtradebot.py#L306))
+- manage_open_orders → exit_positions → adjust → enter: [FreqtradeBot.process](../src/freqtrade/freqtradebot.py) ([L306](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/freqtradebot.py#L306))
+- Order creation when strategy/position action requires it: [FreqtradeBot.process](../src/freqtrade/freqtradebot.py) ([L306](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/freqtradebot.py#L306)) / [Exchange.create_order](../src/freqtrade/exchange/exchange.py) ([L1498](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/exchange/exchange.py#L1498))
+
+## Strengths and limits
+
+### Strengths
+
+- The live/dry-run loop preserves shared strategy hooks and reconciliation order, while historical trials reuse the chronological backtesting engine. [FreqtradeBot.process](../src/freqtrade/freqtradebot.py) ([L306](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/freqtradebot.py#L306)) / [Exchange.create_dry_run_order](../src/freqtrade/exchange/exchange.py) ([L1206](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/exchange/exchange.py#L1206)) / [Backtesting.backtest](../src/freqtrade/optimize/backtesting.py) ([L1763](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/optimize/backtesting.py#L1763)) / [Hyperopt.start](../src/freqtrade/optimize/hyperopt/hyperopt.py) ([L216](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/optimize/hyperopt/hyperopt.py#L216))
+
+### Limitations
+
+- Each bot instance owns one exchange; multi-venue selection should not be described as simultaneous cross-venue execution within that instance. [FreqtradeBot.__init__](../src/freqtrade/freqtradebot.py) ([L94](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/freqtradebot.py#L94))
+
+## Validation scope
+
+The linked validation and command records preserve actual historical runs and user-authorized exclusions. This source/document review does not rerun application tests, establish live trading readiness or rank benchmark performance. Current data, credential and runtime prerequisites remain material.
+
+[Repository validation](validation.md) / [Executed checks](maintenance/index.md)
 
 ## Source map
 
-| Source | Responsibility and location |
-| --- | --- |
-| [freqtradebot.py](../src/freqtrade/freqtradebot.py) | src/freqtrade/freqtradebot.py |
-| [interface.py](../src/freqtrade/strategy/interface.py) | src/freqtrade/strategy/interface.py |
-| [exchange.py](../src/freqtrade/exchange/exchange.py) | src/freqtrade/exchange/exchange.py |
-| [trade_model.py](../src/freqtrade/persistence/trade_model.py) | src/freqtrade/persistence/trade_model.py |
-| [dataprovider.py](../src/freqtrade/data/dataprovider.py) | src/freqtrade/data/dataprovider.py |
-| [history_utils.py](../src/freqtrade/data/history/history_utils.py) | src/freqtrade/data/history/history_utils.py |
-| [backtesting.py](../src/freqtrade/optimize/backtesting.py) | src/freqtrade/optimize/backtesting.py |
-| [strategy_resolver.py](../src/freqtrade/resolvers/strategy_resolver.py) | src/freqtrade/resolvers/strategy_resolver.py |
-| [webserver.py](../src/freqtrade/rpc/api_server/webserver.py) | src/freqtrade/rpc/api_server/webserver.py |
-| [freqai_interface.py](../src/freqtrade/freqai/freqai_interface.py) | src/freqtrade/freqai/freqai_interface.py |
-| [pyproject.toml](../pyproject.toml) | pyproject.toml |
-| [uv.lock](../uv.lock) | uv.lock |
-| [README.md](../README.md) | README.md |
-| [conftest.py](../tests/conftest.py) | tests/conftest.py |
+| Reviewed symbol/path | Inspected responsibility | Actual file SHA256 |
+|---|---|---|
+| [FreqtradeBot.__init__](../src/freqtrade/freqtradebot.py) ([L94](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/freqtradebot.py#L94)) | Loads exchange/strategy, initializes trade DB, wallets/RPC/DataProvider/pairlist, attaches dp and wallets to strategy, initializes protections. | `e9638343654d3c7d78548bb840830147fbb646ff4f5833312dcb45a7f70023f1` |
+| [FreqtradeBot.process](../src/freqtrade/freqtradebot.py) ([L306](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/freqtradebot.py#L306)) | Reloads markets, refreshes candles, invokes strategy analysis, manages open orders, exits/adjusts positions before new entries, commits and dispatches RPC queue. | `e9638343654d3c7d78548bb840830147fbb646ff4f5833312dcb45a7f70023f1` |
+| [IStrategy.populate_entry_trend](../src/freqtrade/strategy/interface.py) ([L254](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/strategy/interface.py#L254)) | User-overridden DataFrame entry signal hook; indicator/exit hooks and custom risk/order callbacks share the interface. | `5d0faa6da85bd223bcea2281bd173c7ffc54c3a9647ae136e4ebc7d5685dea02` |
+| [Exchange.create_order](../src/freqtrade/exchange/exchange.py) ([L1498](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/exchange/exchange.py#L1498)) | Dry-run branch creates simulated orders; real branch rounds quantities/prices, prepares leverage, calls CCXT and maps errors. | `d37a2ed3eeb1b27ea20d154188f3098489e2f578a8143b54894d9929543dfbfb` |
+| [Exchange.create_dry_run_order](../src/freqtrade/exchange/exchange.py) ([L1206](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/exchange/exchange.py#L1206)) | Synthesizes open order, uses order-book crossing/slippage and fee model, checks limit fill and tracks locally. | `d37a2ed3eeb1b27ea20d154188f3098489e2f578a8143b54894d9929543dfbfb` |
+| [DataProvider.refresh](../src/freqtrade/data/dataprovider.py) ([L460](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/data/dataprovider.py#L460)) | Refreshes configured/informative pair OHLCV then optional public trades via exchange. | `3222d862fea2ca9dd566063b83845f99c421ba4f5eb20773ba5e64be68b0ba0e` |
+| [Backtesting.backtest](../src/freqtrade/optimize/backtesting.py) ([L1763](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/optimize/backtesting.py#L1763)) | Resets state/wallets, converts analyzed OHLCV to lists, iterates chronological pair/candle generator, applies trade loop and finalizes results. | `1b185dfe44e5b0cbab0f2e35fae8c6f545c9aa987d556cd019bea1bd8880bfd1` |
+| [Hyperopt.start](../src/freqtrade/optimize/hyperopt/hyperopt.py) ([L216](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/optimize/hyperopt/hyperopt.py#L216)) | Uses optimizer ask/tell, joblib Parallel batches of trial backtests, progress reporting and optional early stopping. | `e8ce6c542b1bf8d2ce072854d0d25ef05a8338144f77ecaf33e998dde88cd5d5` |
+| [FreqaiDataKitchen.make_train_test_datasets](../src/freqtrade/freqai/data_kitchen.py) ([L124](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/freqai/data_kitchen.py#L124)) | Partitions features/labels into train/test datasets with configured split/weighting. | `00a0d1089dab1a8ae47ef5282ca6aa1c1fbb71cb95dc27193fee61c1d1bce82e` |
+| [BaseReinforcementLearningModel.train](../src/freqtrade/freqai/RL/BaseReinforcementLearningModel.py) ([L99](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/freqai/RL/BaseReinforcementLearningModel.py#L99)) | Filters/transforms features, creates RL environments and invokes user/model fit. | `7f39d53cd7299066afccfe0a36c9cd91f0dd531a1cb1249e1ee18beeeae3ee36` |
+| [BaseReinforcementLearningModel.set_train_and_eval_environments](../src/freqtrade/freqai/RL/BaseReinforcementLearningModel.py) ([L153](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/freqai/RL/BaseReinforcementLearningModel.py#L153)) | Creates MyRLEnv train/evaluation environments and MaskableEvalCallback for optional RL stack. | `7f39d53cd7299066afccfe0a36c9cd91f0dd531a1cb1249e1ee18beeeae3ee36` |
+| [Order.update_from_ccxt_object](../src/freqtrade/persistence/trade_model.py) ([L197](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/persistence/trade_model.py#L197)) | Reconciles exchange order status/price/filled values into persistent order model. | `4cff97840736a4239eebdf6b1d0208e9667edf52348b93884583a9e02bc00c2f` |
+| [ApiServer.start_api](../src/freqtrade/rpc/api_server/webserver.py) ([L295](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/rpc/api_server/webserver.py#L295)) | Starts configured REST API server; API setup registers auth/routers and optional UI. | `f445a4ad560f0e022f341096f67456c81196d21a0f51b5deffbe84fb48167bf2` |
+| [main](../src/freqtrade/main.py) ([L31](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/main.py#L31)) | Parses subcommands, sets process/runtime configuration, dispatches registered command function. | `29f4debd9e9405aa232dedbcbf4eec02a642d16665dc361c8e9a67c13540e962` |
+| [calculate_sharpe](../src/freqtrade/data/metrics.py) ([L455](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/data/metrics.py#L455)) | Computes local annualized Sharpe from trade profit_abs, starting balance and backtest date period; handles empty/invalid period. | `d5dfd23bcf556efc5faf23f6031d2b758f29feba0c2ace44080140da3de877ae` |
+| [generate_strategy_stats](../src/freqtrade/optimize/optimize_reports/optimize_reports.py) ([L554](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/optimize/optimize_reports/optimize_reports.py#L554)) | Builds local per-strategy performance statistics including native Sharpe/Sortino/Calmar and maximum/relative drawdown from simulated trade results. | `6ae98213facc41065248aa1415328bba37237ba2627f391bde7d84eb699febf6` |
+| [Backtesting.start](../src/freqtrade/optimize/backtesting.py) ([L1906](https://github.com/alexcwyu/freqtrade/blob/323ee733de0a4807516c648261444df1bd5298de/src/freqtrade/optimize/backtesting.py#L1906)) | Backtesting.start calls generate_backtest_stats at line 1932 after strategy runs to build local report from all strategy results. | `1b185dfe44e5b0cbab0f2e35fae8c6f545c9aa987d556cd019bea1bd8880bfd1` |
 
-## Further reading
+## Documentation provenance
 
-Use [development.md](development.md) for reproducible commands and [validation.md](validation.md) for exact interpreter, dependency, build, test, and blocker evidence. The equivalent [HTML architecture document](ayu-develop.html) supports browsing and rendered diagrams.
+Review date: 2026-10-13. Full committed source HEAD: `323ee733de0a4807516c648261444df1bd5298de`. Template version: 2. 13 source files were independently hashed for this guide.
+
+[Evidence catalog](../../docs/systems-2026-10-13/catalog.json) / [Standard template](../../docs/guidelines/APP_TEMPLATE.md)
+
+- Read-only source audit of inventory HEAD 323ee733de0a4807516c648261444df1bd5298de; no runtime execution, credential check or live-production assertion. Existing validation records remain separate historical evidence.
+- Inspected implementation/configuration coverage: src/freqtrade/freqtradebot.py, src/freqtrade/strategy/interface.py, src/freqtrade/exchange/exchange.py, src/freqtrade/data/dataprovider.py, src/freqtrade/optimize/backtesting.py, src/freqtrade/optimize/hyperopt/hyperopt.py, src/freqtrade/freqai/data_kitchen.py, src/freqtrade/freqai/RL/BaseReinforcementLearningModel.py, src/freqtrade/persistence/trade_model.py, src/freqtrade/rpc/api_server/webserver.py, src/freqtrade/main.py
+- Source symbols and call chains are representative coverage, not exhaustive connector, strategy or product certification. Integration statuses identify dependencies that supply the runtime behavior.
+- Independent review correction: inspected data/metrics.py calculate_sharpe, optimize_reports.generate_strategy_stats and Backtesting.start local report generation. Performance analytics is native; separate FreqUI presentation does not make metrics implementation external.
